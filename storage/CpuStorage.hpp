@@ -12,7 +12,7 @@ public:
 
    
     void fill(double value) override {
-        FILL_REGISTRY.dispatch(dtype, DeviceType::CPU)(data.get(), value, size);
+        FILL_REGISTRY.dispatch(dtype, DeviceType::CPU)(data.get(), value, size / getDTypeSize(dtype));
     }
 
     double read(uint32_t offset) override {
