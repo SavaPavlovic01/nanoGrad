@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "CpuStorage.hpp"
+#include "GPUStorage.hpp"
 #include <stdexcept>
 #include "Enums.hpp"
 
@@ -12,7 +13,9 @@ public:
         uint64_t n = 1;
         for(auto size : sizes) n *= size;
         if(device == DeviceType::CPU) storage = std::make_shared<CpuStorage>(n, dtype);
-        else throw std::runtime_error("Not yet supported");
+        else {
+            storage = std::make_shared<GPUStorage>(n, dtype);
+        }
     }
 
     static Tensor ones(std::vector<uint32_t> shape, DType dtype = DType::Float32, DeviceType device = DeviceType::CPU) {

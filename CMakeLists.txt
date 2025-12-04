@@ -5,10 +5,13 @@ endif()
 cmake_minimum_required(VERSION 3.16)
 project(nanoGrad)
 
+find_package(OpenCL CONFIG REQUIRED)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(OpenCL CONFIG REQUIRED)
+
+add_compile_definitions(CL_TARGET_OPENCL_VERSION=100)
 
 set(SOURCES
     main.cpp
@@ -26,5 +29,4 @@ include_directories(
 
 # Add executable
 add_executable(nanoGrad ${SOURCES})
-
-
+target_link_libraries(nanoGrad PRIVATE OpenCL::OpenCL)

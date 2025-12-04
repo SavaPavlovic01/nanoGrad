@@ -1,5 +1,5 @@
 #pragma once
-#include <cl/cl.h>
+#include <CL/cl.h>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -62,7 +62,6 @@ public:
         cl_int err;
         size_t dims = global_work_size.size();
         const size_t *local = (local_work_size.empty()) ? nullptr : local_work_size.data();
-
         err = clEnqueueNDRangeKernel(
             queue,
             kernel,
@@ -77,6 +76,17 @@ public:
         if (err != CL_SUCCESS)
             throw std::runtime_error("Failed to enqueue OpenCL kernel");
         clFinish(queue);
+    }
+
+    void readGpuBuffer(cl_mem buffer, size_t size_in_bytes_to_read, void* dst) {
+        clEnqueueReadBuffer(queue, buffer, CL_TRUE, 0, size_in_bytes_to_read, dst, 0, nullptr, nullptr);
+    }
+
+    // PLS DONT USE THIS, JUST FOR TESTING
+    void readInOneFloat(cl_mem buffer, uint64_t index, void* dst) {
+        if(clEnqueueReadBuffer(queue, buffer, CL_TRUE, index * 4, 4, dst, 0, nullptr, nullptr) != CL_SUCCESS) {
+            std::cout<<"Failed to read buffer";
+        }
     }
 
     cl_platform_id platform;
