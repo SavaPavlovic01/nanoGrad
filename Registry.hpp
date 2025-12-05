@@ -3,6 +3,8 @@
 #include <utility>
 #include "Enums.hpp"
 #include <inttypes.h>
+#include <memory>
+#include "Storage.hpp"
 
 using FillFn = void(*)(void*, double, uint64_t);
 
@@ -35,4 +37,12 @@ extern void register_all_fill_kernels();
 using ReadFn = double(*)(void*, uint32_t);
 extern Registry<ReadFn> READ_REGISTRY;
 extern void register_all_read_kernels();
+
+using WriteElementFn = void(*)(void*, double, uint32_t);
+extern Registry<WriteElementFn> WRITE_ELEM_REGISTRY;
+extern void register_all_write_elem();
+
+using AddFn = std::shared_ptr<Storage>(*)(Storage*, Storage*);
+extern Registry<AddFn> ADD_REGISTRY;
+extern void register_all_add_kernels();
 

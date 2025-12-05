@@ -18,6 +18,10 @@ public:
         }
     }
 
+    Tensor(std::vector<uint32_t> sizes, DType dtype, DeviceType device, std::shared_ptr<Storage> storage): shape(sizes), dtype(dtype), device(device), storage(storage) {
+        strides = getStrides(sizes); 
+    }
+
     static Tensor ones(std::vector<uint32_t> shape, DType dtype = DType::Float32, DeviceType device = DeviceType::CPU) {
         Tensor t(shape, dtype, device);
         t.storage->fill(1);
@@ -31,6 +35,11 @@ public:
         }
 
         return storage->read(buffer_index);
+    }
+
+    Tensor operator+(const Tensor& b) {
+        auto target_dtype = promoteDtype(this->dtype, b.dtype);
+        return Tensor(this->shape, target_dtype , this->device, this->storage->add(b.storage));
     }
 
 private:
