@@ -16,17 +16,13 @@ add_compile_definitions(CL_TARGET_OPENCL_VERSION=100)
 set(SOURCES
     main.cpp
     Registry.cpp
-    # If you move implementations to .cpp
-    # storage/CpuStorage.cpp
-    # OpenClContext.cpp
 )
 
 include_directories(
-    ${PROJECT_SOURCE_DIR}       # For root headers (Tensor.hpp, Enums.hpp)
+    ${PROJECT_SOURCE_DIR}       
     ${PROJECT_SOURCE_DIR}/storage
     ${PROJECT_SOURCE_DIR}/kernels
 )
 
-# Add executable
 add_executable(nanoGrad ${SOURCES})
 target_link_libraries(nanoGrad PRIVATE OpenCL::OpenCL)

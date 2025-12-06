@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <optional>
 #include <stdexcept>
 #include <iostream>
 
@@ -13,7 +14,7 @@ public:
         return instance;
     }
 
-    cl_program getProgram(const std::string& src) {
+    cl_program getProgram(const std::string& src, const char* build_args = nullptr) {
         if(program_cache.count(src)) {
             return program_cache.at(src);
         }
@@ -24,7 +25,7 @@ public:
             throw std::runtime_error("Failed to create OpenCL program");
         }
 
-        err = clBuildProgram(program, 1, &device, nullptr, nullptr, nullptr);
+        err = clBuildProgram(program, 1, &device, build_args, nullptr, nullptr);
         if (err != CL_SUCCESS) {
             size_t log_size;
             clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &log_size);
@@ -35,6 +36,22 @@ public:
         }
 
         program_cache[source] = program;
+
+        cl_uint kernelCnt = 0;
+        err = clCreateKernelsInProgram(program, 0, nullptr, &kernelCnt);
+        if (err != CL_SUCCESS)
+            throw std::runtime_error("Failed clCreateKernelsInProgram");
+        std::vector<cl_kernel> kernels(kernelCnt);
+
+        clCreateKernelsInProgram(program, kernelCnt, kernels.data(), nullptr);
+
+        for (auto &kernel : kernels){
+            char name[128];
+            size_t sz;
+            clGetKernelInfo(kernel, CL_KERNEL_FUNCTION_NAME, sizeof(name), name, &sz);
+            kernel_cache[name] = kernel;
+        }
+
         return program;
     }
 
@@ -45,6 +62,18 @@ public:
             throw std::runtime_error("Failed to create OpenCL kernel");
         }
         return kernel;
+    }
+
+    // use only if you know the kernel exists
+    std::optional<cl_kernel> get_kernel_by_name(const std::string& name) {
+        if(kernel_cache.contains(name)) return kernel_cache[name];
+        return std::nullopt;
+    }
+
+    cl_kernel get_or_make_kernel(const std::string& name, const std::string source) {
+        if(kernel_cache.contains(name)) return kernel_cache[name];
+        cl_program program = getProgram(source);
+        return kernel_cache[name];
     }
 
     cl_mem allocateBuffer(size_t size, cl_mem_flags flags = CL_MEM_READ_WRITE) {
@@ -89,6 +118,24 @@ public:
         }
     }
 
+    template <typename T>
+    static const char *type_to_cl_string(){
+        if constexpr (std::is_same_v<T, float>)
+            return "float";
+        else if constexpr (std::is_same_v<T, double>)
+            return "double";
+        else if constexpr (std::is_same_v<T, int32_t>)
+            return "int";
+        else if constexpr (std::is_same_v<T, int64_t>)
+            return "long";
+        else if constexpr (std::is_same_v<T, uint32_t>)
+            return "uint";
+        else if constexpr (std::is_same_v<T, uint64_t>)
+            return "ulong";
+        else
+            return "";
+    }
+
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
@@ -116,5 +163,6 @@ private:
     OpenCLContext(const OpenCLContext&) = delete;
     OpenCLContext& operator=(const OpenCLContext&) = delete;
     std::unordered_map<std::string, cl_program> program_cache;
+    std::unordered_map<std::string, cl_kernel> kernel_cache;
     
 };

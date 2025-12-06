@@ -43,3 +43,8 @@ inline int dtypeRank(DType dt) {
 inline DType promoteDtype(DType dt1, DType dt2) {
     return dtypeRank(dt1) >= dtypeRank(dt2)? dt1 : dt2;
 }
+
+template<typename A, typename B>
+auto promote_type(A, B) -> decltype(A{} + B{}) {
+    return {};
+}

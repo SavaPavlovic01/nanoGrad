@@ -4,6 +4,8 @@
 #include "Storage.hpp"
 #include "Enums.hpp"
 #include "Registry.hpp"
+#include "add_kernels.hpp"
+#include "dispatch.hpp"
 
 class CpuStorage: public Storage {
 public:
@@ -25,7 +27,24 @@ public:
 
     
     std::shared_ptr<Storage> add(std::shared_ptr<Storage> other) override {
-        return ADD_REGISTRY.dispatch(dtype, DeviceType::CPU)(this, other.get()); 
+        CpuStorage* ptr = dynamic_cast<CpuStorage*>(other.get());
+        std::shared_ptr<Storage> result;
+        dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() {
+            using Tout = decltype(std::declval<T1>() + std::declval<T2>());
+            
+            auto out = std::make_shared<CpuStorage>(this->numel, promoteDtype(this->dtype, other->dtype));
+            
+            add_kernel_cpu_better<T1, T2, Tout>(this->data_as<T1>(), ptr->data_as<T2>(), out->data_as<Tout>(), this->get_numel());
+            
+            result = out;
+        });
+
+        return result;
+    }
+
+    template<typename T>
+    T* data_as() {
+        return reinterpret_cast<T*>(data.get());
     }
 
     std::unique_ptr<uint8_t[]> data;

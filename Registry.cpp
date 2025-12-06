@@ -16,7 +16,7 @@ void register_all_fill_kernels() {
     FILL_REGISTRY.register_kernel(DType::Int32, DeviceType::CPU, &fill_kernel_cpu<int32_t>);
     FILL_REGISTRY.register_kernel(DType::Int64, DeviceType::CPU, &fill_kernel_cpu<int64_t>);
 
-    FILL_REGISTRY.register_kernel(DType::Float32, DeviceType::GPU, &fill_kernel_gpu_openCl); 
+    //FILL_REGISTRY.register_kernel(DType::Float32, DeviceType::GPU, &fill_kernel_gpu_openCl); 
 }
 
 void register_all_read_kernels() {
@@ -36,8 +36,11 @@ void register_all_write_elem() {
 }
 
 void register_all_add_kernels() {
-    ADD_REGISTRY.register_kernel(DType::Float32, DeviceType::CPU, &add_kernel_cpu<float>);
-    ADD_REGISTRY.register_kernel(DType::Float64, DeviceType::CPU, &add_kernel_cpu<double>);
-    ADD_REGISTRY.register_kernel(DType::Int32, DeviceType::CPU, &add_kernel_cpu<int32_t>);
-    ADD_REGISTRY.register_kernel(DType::Int64, DeviceType::CPU, &add_kernel_cpu<int64_t>);
+//     ADD_REGISTRY.register_kernel(DType::Float32, DeviceType::CPU, &add_kernel_cpu<float>);
+//     ADD_REGISTRY.register_kernel(DType::Float64, DeviceType::CPU, &add_kernel_cpu<double>);
+//     ADD_REGISTRY.register_kernel(DType::Int32, DeviceType::CPU, &add_kernel_cpu<int32_t>);
+//     ADD_REGISTRY.register_kernel(DType::Int64, DeviceType::CPU, &add_kernel_cpu<int64_t>);
+// 
+   // ADD_REGISTRY.register_kernel(DType::Float32, DeviceType::GPU, &add_kernel_gpu_f32);
+// 
 } 
