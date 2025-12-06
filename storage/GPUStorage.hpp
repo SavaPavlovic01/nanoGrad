@@ -45,6 +45,10 @@ public:
         return result;
     }
 
+    void rand_fill(uint32_t seed) override {
+        fill_random_gpu_philox_float32(data, numel, seed);
+    }
+
 
     cl_mem data;
 };

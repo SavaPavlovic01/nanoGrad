@@ -28,6 +28,13 @@ public:
         return t;
     }
 
+    // no dtype, just supporting float32 for now
+    static Tensor rand(std::vector<uint32_t> sizes, uint32_t seed = 42, DeviceType device = DeviceType::CPU) {
+        Tensor t(sizes, DType::Float32, device);
+        t.storage->rand_fill(seed);
+        return t;
+    }
+
     float index(std::vector<uint32_t> indecies)  {
         uint32_t buffer_index = 0;
         for(int i = 0; i < indecies.size(); i++) {

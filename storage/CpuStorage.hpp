@@ -42,6 +42,10 @@ public:
         return result;
     }
 
+    void rand_fill(uint32_t seed) override {
+        return;
+    }
+
     template<typename T>
     T* data_as() {
         return reinterpret_cast<T*>(data.get());

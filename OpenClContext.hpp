@@ -70,7 +70,7 @@ public:
         return std::nullopt;
     }
 
-    cl_kernel get_or_make_kernel(const std::string& name, const std::string source) {
+    cl_kernel get_or_make_kernel(const std::string& name, const std::string& source) {
         if(kernel_cache.contains(name)) return kernel_cache[name];
         cl_program program = getProgram(source);
         return kernel_cache[name];
