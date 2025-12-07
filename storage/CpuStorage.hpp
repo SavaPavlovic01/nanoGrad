@@ -33,7 +33,6 @@ public:
             using Tout = decltype(std::declval<T1>() + std::declval<T2>());
             
             auto out = std::make_shared<CpuStorage>(this->numel, promoteDtype(this->dtype, other->dtype));
-            
             add_kernel_cpu_better<T1, T2, Tout>(this->data_as<T1>(), ptr->data_as<T2>(), out->data_as<Tout>(), this->get_numel());
             
             result = out;

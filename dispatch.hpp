@@ -36,6 +36,24 @@ void dispatch_type(DType dtype, Func&& callback) {
     }
 }
 
+#define GPU_ARGS this->data, other_ptr->data, out->data, this->numel
+
+#define DISPATCH_BINARY_OP(ARG1, ARG2, ARG3, ARG4, OP)                 \
+    using SELF_TYPE = std::remove_pointer_t<decltype(this)>; \
+    SELF_TYPE* other_ptr = dynamic_cast<SELF_TYPE*>(other.get());               \
+    std::shared_ptr<Storage> result;                                            \
+                                                                                \
+    dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() { \
+        using Tout = decltype(std::declval<T1>() + std::declval<T2>());         \
+                                                                                \
+        auto out = std::make_shared<SELF_TYPE>(this->numel, promoteDtype(this->dtype, other->dtype)); \
+                                                                                \
+        binary_op_into_dest<T1, T2, Tout>(ARG1, ARG2, ARG3, ARG4, OP);                                                          \
+                                                                                \
+        result = out;                                                           \
+    });                                                                         \
+                                                                                \
+    return result;                                                              \
 
 
 // Same thing just macros, i think that templates are cleaner
