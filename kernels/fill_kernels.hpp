@@ -50,6 +50,39 @@ void fill_kernel_gpu_better(cl_mem buffer, float val, uint64_t size) {
     context.runKernel(kernel, {global_size});
 }
 
+template<typename T>
+void copy_kernel_gpu(cl_mem src, cl_mem dest, size_t n) {
+    auto& context = OpenCLContext::get();
+
+    std::string kernel_name = std::format("copy_{}", OpenCLContext::type_to_cl_string<T>());
+
+    cl_kernel kernel;
+    std::optional<cl_kernel> probe_kernel = context.get_kernel_by_name(kernel_name);
+    if(!probe_kernel.has_value()) {
+        std::string kernel_src = std::format(R"(
+            __kernel void {}(__global const {}* src,
+                            __global {}* dest,
+                           ulong n) {{
+                size_t idx = get_global_id(0);
+                if (idx >= n) return;
+                dest[idx] = src[idx];
+            }}
+        )", kernel_name,
+            OpenCLContext::type_to_cl_string<T>(),
+            OpenCLContext::type_to_cl_string<T>());
+        kernel = context.get_or_make_kernel(kernel_name, kernel_src);
+    } else {
+        kernel = probe_kernel.value();
+    }
+
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &src);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &dest);
+    clSetKernelArg(kernel, 2, sizeof(uint64_t), &n);
+    
+    size_t global_size = ((n + 255) / 256) * 256;
+    context.runKernel(kernel, {global_size});
+}
+
 
 inline void fill_random_gpu_philox_float32(cl_mem buffer, uint64_t size, uint32_t seed) {
     std::string kernel_src = R"(

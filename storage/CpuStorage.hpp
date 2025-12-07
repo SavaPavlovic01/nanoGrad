@@ -51,6 +51,10 @@ public:
         return reinterpret_cast<T*>(data.get());
     }
 
+    std::shared_ptr<Storage> add(double value) override {
+        throw std::runtime_error("Not implemented");
+    }
+
     std::unique_ptr<uint8_t[]> data;
 
 };

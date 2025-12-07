@@ -14,6 +14,15 @@ public:
 
     GPUStorage(size_t elemnt_cnt, DType dtype, cl_mem buffer) : Storage(dtype, elemnt_cnt), data(buffer) {}
 
+    GPUStorage(const GPUStorage& storage): Storage(storage.dtype, storage.numel) {
+        auto& context = OpenCLContext::get();
+        data = context.allocateBuffer(size, CL_MEM_READ_WRITE);
+
+        dispatch_type(this->dtype, [&]<typename T>() {
+            copy_kernel_gpu<T>(storage.data, data, numel);
+        });
+    }
+
     void fill(double value) override {
         dispatch_type(this->dtype, [&]<typename T>() {
             fill_kernel_gpu_better<T>(this->data, 1.0, this->numel);
@@ -47,6 +56,19 @@ public:
 
     void rand_fill(uint32_t seed) override {
         fill_random_gpu_philox_float32(data, numel, seed);
+    }
+
+    std::shared_ptr<Storage> add(double value) override {
+        std::shared_ptr<Storage> result;
+        dispatch_type(this->dtype, [&]<typename T1>() {
+
+            auto out = std::make_shared<GPUStorage>(*this);
+            add_constant_kernel_opencl<T1>(out->data, value, out->numel);
+
+            result = out;
+        });
+
+        return result;
     }
 
 

@@ -49,6 +49,18 @@ public:
         return Tensor(this->shape, target_dtype , this->device, this->storage->add(b.storage));
     }
 
+    Tensor add_const(double value) {
+        return Tensor(this->shape, this->dtype, device, this->storage->add(value));
+    }
+
+    friend Tensor operator+(const Tensor& t, const double value) {
+        return Tensor(t.shape, t.dtype, t.device, t.storage->add(value));
+    }
+
+    friend Tensor operator+(const double value, const Tensor& t) {
+        return t + value;
+    }
+
 private:
 
     std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape) {
