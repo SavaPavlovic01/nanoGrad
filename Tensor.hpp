@@ -49,6 +49,21 @@ public:
         return Tensor(this->shape, target_dtype , this->device, this->storage->add(b.storage));
     }
 
+    Tensor operator*(const Tensor& b) {
+        auto target_dtye = promoteDtype(this->dtype, b.dtype);
+        return Tensor(this->shape, target_dtye, this->device, this->storage->mult(b.storage));
+    }
+
+    Tensor operator-(const Tensor& b) {
+        auto target_dtye = promoteDtype(this->dtype, b.dtype);
+        return Tensor(this->shape, target_dtye, this->device, this->storage->sub(b.storage));
+    }
+
+    Tensor operator/(const Tensor& b) {
+        auto target_dtye = promoteDtype(this->dtype, b.dtype);
+        return Tensor(this->shape, target_dtye, this->device, this->storage->div(b.storage));
+    }
+
     Tensor add_const(double value) {
         return Tensor(this->shape, this->dtype, device, this->storage->add(value));
     }
@@ -56,6 +71,7 @@ public:
     friend Tensor operator+(const Tensor& t, const double value) {
         return Tensor(t.shape, t.dtype, t.device, t.storage->add(value));
     }
+
 
     friend Tensor operator+(const double value, const Tensor& t) {
         return t + value;

@@ -45,6 +45,18 @@ public:
         DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "+");
     }
 
+    std::shared_ptr<Storage> mult(const std::shared_ptr<Storage>& other) override {
+        DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "*");
+    }
+
+    std::shared_ptr<Storage> sub(const std::shared_ptr<Storage>& other) override {
+        DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "-");
+    }
+
+    std::shared_ptr<Storage> div(const std::shared_ptr<Storage>& other) override {
+        DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "/");
+    }
+
     void rand_fill(uint32_t seed) override {
         fill_random_gpu_philox_float32(data, numel, seed);
     }

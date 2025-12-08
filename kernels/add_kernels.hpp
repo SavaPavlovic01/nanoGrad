@@ -25,7 +25,6 @@ void add_kernel_opencl(cl_mem a, cl_mem b, cl_mem out,size_t n) {
     cl_kernel kernel;
     std::optional<cl_kernel> probe_kernel = context.get_kernel_by_name(kernel_name);
     if(!probe_kernel.has_value()) {
-        // really slow, in a real thing they would precompile all the kernels in a binary right?
         std::string kernel_src = std::format(R"(
             __kernel void {}(__global const {}* a,
                            __global const {}* b,

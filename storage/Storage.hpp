@@ -11,6 +11,9 @@ public:
     virtual double read(uint32_t offset) = 0;
     virtual std::shared_ptr<Storage> add(std::shared_ptr<Storage>) = 0;
     virtual std::shared_ptr<Storage> add(double value) = 0;
+    virtual std::shared_ptr<Storage> mult(const std::shared_ptr<Storage>&) = 0;
+    virtual std::shared_ptr<Storage> div(const std::shared_ptr<Storage>&) = 0;
+    virtual std::shared_ptr<Storage> sub(const std::shared_ptr<Storage>&) = 0;
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
     virtual void rand_fill(uint32_t seed) = 0;

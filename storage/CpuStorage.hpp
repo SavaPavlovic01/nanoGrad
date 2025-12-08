@@ -41,6 +41,18 @@ public:
         return result;
     }
 
+    std::shared_ptr<Storage> mult(const std::shared_ptr<Storage>& other) override {
+        throw std::runtime_error("NOt implemented");
+    }
+    
+    std::shared_ptr<Storage> div(const std::shared_ptr<Storage>& other) override {
+        throw std::runtime_error("NOt implemented");
+    }
+
+    std::shared_ptr<Storage> sub(const std::shared_ptr<Storage>& other) override {
+        throw std::runtime_error("NOt implemented");
+    }
+
     void rand_fill(uint32_t seed) override {
         return;
     }
