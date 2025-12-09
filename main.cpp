@@ -9,8 +9,7 @@ int main() {
     register_all_add_kernels();
     auto tensor = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
     auto tensor1 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
-    auto added = tensor + tensor1; 
-    auto res = added * added / added - added;
-    std::cout<<res.index({1, 1})<<std::endl;
+    tensor += tensor1;
+    std::cout<<tensor.index({1, 1})<<std::endl;
     return 0;
 }

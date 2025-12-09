@@ -68,6 +68,11 @@ public:
         return Tensor(this->shape, this->dtype, device, this->storage->add(value));
     }
 
+    Tensor& operator+=(const Tensor& b) {
+        this->storage->add_into(b.storage);
+        return *this;
+    }
+
     friend Tensor operator+(const Tensor& t, const double value) {
         return Tensor(t.shape, t.dtype, t.device, t.storage->add(value));
     }
