@@ -38,7 +38,7 @@ void dispatch_type(DType dtype, Func&& callback) {
 
 #define GPU_ARGS this->data, other_ptr->data, out->data, this->numel
 
-#define DISPATCH_BINARY_OP(ARG1, ARG2, ARG3, ARG4, OP)                 \
+#define DISPATCH_BINARY_OP(...)                 \
     using SELF_TYPE = std::remove_pointer_t<decltype(this)>; \
     SELF_TYPE* other_ptr = dynamic_cast<SELF_TYPE*>(other.get());               \
     std::shared_ptr<Storage> result;                                            \
@@ -48,7 +48,7 @@ void dispatch_type(DType dtype, Func&& callback) {
                                                                                 \
         auto out = std::make_shared<SELF_TYPE>(this->numel, promoteDtype(this->dtype, other->dtype)); \
                                                                                 \
-        binary_op_into_dest<T1, T2, Tout>(ARG1, ARG2, ARG3, ARG4, OP);                                                          \
+        binary_op_into_dest<T1, T2, Tout>(__VA_ARGS__);                                                          \
                                                                                 \
         result = out;                                                           \
     });                                                                         \

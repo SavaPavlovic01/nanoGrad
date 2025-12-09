@@ -40,7 +40,8 @@ public:
         WRITE_ELEM_REGISTRY.dispatch(dtype, DeviceType::GPU)(data, value, index);
     }
 
-    
+    // -------------------------------------------------------------------------
+    // for tensor op tensor = someTensor (makes a new buffer)  
     std::shared_ptr<Storage> add(std::shared_ptr<Storage> other) override { 
         DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "+");
     }
@@ -56,6 +57,63 @@ public:
     std::shared_ptr<Storage> div(const std::shared_ptr<Storage>& other) override {
         DISPATCH_BINARY_OP(this->data, other_ptr->data, out->data, this->numel, "/");
     }
+
+    // ----------------------------------------------------------------------- 
+    // for tensor op= tensor or const (doesnt make new buffer)
+
+    void add_into(const std::shared_ptr<Storage>& other) override { 
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(other.get());
+        dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() {
+            binary_op_from_buffer_into_dest<T1, T2>(this->data, ptr->data, this->numel, "+");
+        });
+    }
+
+    void mult_into(const std::shared_ptr<Storage>& other) override {
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(other.get());
+        dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() {
+            binary_op_from_buffer_into_dest<T1, T2>(this->data, ptr->data, this->numel, "*");
+        });
+    }
+
+    void sub_into(const std::shared_ptr<Storage>& other) override {
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(other.get());
+        dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() {
+            binary_op_from_buffer_into_dest<T1, T2>(this->data, ptr->data, this->numel, "-");
+        });
+    }
+
+    void div_into(const std::shared_ptr<Storage>& other) override {
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(other.get());
+        dispatch_type_pairs(this->dtype, other->dtype, [&]<typename T1, typename T2>() {
+            binary_op_from_buffer_into_dest<T1, T2>(this->data, ptr->data, this->numel, "/");
+        });
+    }
+
+    void add_into(double value) override { 
+        dispatch_type(this->dtype, [&]<typename T1>() {
+            binary_op_from_const_into_dest<T1>(this->data, value, this->numel, "+");
+        });
+    }
+
+    void mult_into(double value) override {
+        dispatch_type(this->dtype, [&]<typename T1>() {
+            binary_op_from_const_into_dest<T1>(this->data, value, this->numel, "*");
+        });
+    }
+
+    void sub_into(double value) override {
+        dispatch_type(this->dtype, [&]<typename T1>() {
+            binary_op_from_const_into_dest<T1>(this->data, value, this->numel, "-");
+        });
+    }
+
+    void div_into(double value) override {
+    dispatch_type(this->dtype, [&]<typename T1>() {
+            binary_op_from_const_into_dest<T1>(this->data, value, this->numel, "/");
+        });
+    }
+
+    // ------------------------------------------------------------------------------------
 
     void rand_fill(uint32_t seed) override {
         fill_random_gpu_philox_float32(data, numel, seed);
