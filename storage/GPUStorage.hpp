@@ -8,6 +8,7 @@
 #include "dispatch.hpp"
 #include "kernel_templates.hpp"
 #include <type_traits>
+#include <vector>
 class GPUStorage : public Storage {
 public:
     GPUStorage(size_t elemnt_cnt, DType dtype) : Storage(dtype, elemnt_cnt) {
@@ -130,6 +131,37 @@ public:
         });
 
         return result;
+    }
+
+    std::shared_ptr<Storage> mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 
+        const std::vector<uint32_t>& this_sizes, const std::vector<uint32_t>& this_strides){
+        auto& context = OpenCLContext::get();
+        auto kernel = context.get_kernel_by_name("matrixMult_simple");
+        if(!kernel.has_value()) {
+            throw std::runtime_error("WTF");
+        }
+
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(other.get());
+        clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &this->data);
+        clSetKernelArg(kernel.value(), 1, sizeof(uint32_t), &this_sizes[0]);
+        clSetKernelArg(kernel.value(), 2, sizeof(uint32_t), &this_sizes[1]);
+        clSetKernelArg(kernel.value(), 3, sizeof(uint32_t), &this_strides[0]);
+        clSetKernelArg(kernel.value(), 4, sizeof(uint32_t), &this_strides[1]);
+
+        clSetKernelArg(kernel.value(), 5, sizeof(cl_mem), &ptr->data);
+        clSetKernelArg(kernel.value(), 6, sizeof(uint32_t), &other_sizes[0]);
+        clSetKernelArg(kernel.value(), 7, sizeof(uint32_t), &other_sizes[1]);
+        clSetKernelArg(kernel.value(), 8, sizeof(uint32_t), &other_strides[0]);
+        clSetKernelArg(kernel.value(), 9, sizeof(uint32_t), &other_strides[1]);
+
+        auto dest_buffer = context.allocateBuffer(this_sizes[1] * other_sizes[0] * sizeof(float), CL_MEM_READ_WRITE);
+
+        clSetKernelArg(kernel.value(), 10, sizeof(cl_mem), &dest_buffer);
+        size_t global_dim_x = ((this_sizes[0] + 256) / 256) * 256;
+        size_t global_dim_y = ((other_sizes[1] + 256) / 256) * 256;
+        context.runKernel(kernel.value(), {global_dim_x, global_dim_y});
+
+        return std::make_shared<GPUStorage>(this_sizes[0] * other_sizes[1], DType::Float32, dest_buffer);
     }
 
 

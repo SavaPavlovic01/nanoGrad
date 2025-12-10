@@ -26,3 +26,13 @@ include_directories(
 
 add_executable(nanoGrad ${SOURCES})
 target_link_libraries(nanoGrad PRIVATE OpenCL::OpenCL)
+
+set(OPENCL_KERNEL_DIR ${PROJECT_SOURCE_DIR}/openclKernels)
+add_custom_command(
+    TARGET nanoGrad
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${OPENCL_KERNEL_DIR}
+            $<TARGET_FILE_DIR:nanoGrad>
+    COMMENT "Copying OpenCL kernel files..."
+)

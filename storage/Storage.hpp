@@ -26,6 +26,9 @@ public:
     virtual void mult_into(double value){throw  std::runtime_error("Not yet implemented");}
     virtual void sub_into(double value){throw  std::runtime_error("Not yet implemented");}
 
+    virtual std::shared_ptr<Storage>mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 
+        const std::vector<uint32_t>& this_sizes, const std::vector<uint32_t>& this_strides){throw std::runtime_error("not yet");}
+
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
     virtual void rand_fill(uint32_t seed) = 0;

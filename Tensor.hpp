@@ -73,6 +73,10 @@ public:
         return *this;
     }
 
+    Tensor mm(const Tensor& b) {
+        return Tensor({this->shape[0], b.shape[1]}, this->dtype, device, storage->mm(b.storage, b.shape, b.strides, this->shape, this->strides));
+    }
+
     friend Tensor operator+(const Tensor& t, const double value) {
         return Tensor(t.shape, t.dtype, t.device, t.storage->add(value));
     }
@@ -82,7 +86,6 @@ public:
         return t + value;
     }
 
-private:
 
     std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape) {
         uint64_t acc = 1;

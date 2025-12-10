@@ -6,6 +6,8 @@
 #include <optional>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 class OpenCLContext {
 public:
@@ -85,10 +87,12 @@ public:
         return buf;
     }
 
-    void runKernel(cl_kernel kernel,
+    // returns kernel run time
+    double runKernel(cl_kernel kernel,
                    const std::vector<size_t> &global_work_size,
                    const std::vector<size_t> &local_work_size = {}){
         cl_int err;
+        cl_event event = NULL;
         size_t dims = global_work_size.size();
         const size_t *local = (local_work_size.empty()) ? nullptr : local_work_size.data();
         err = clEnqueueNDRangeKernel(
@@ -100,11 +104,20 @@ public:
             local,
             0,
             nullptr,
-            nullptr);
+            &event);
 
         if (err != CL_SUCCESS)
             throw std::runtime_error("Failed to enqueue OpenCL kernel");
         clFinish(queue);
+
+        cl_ulong time_start, time_end;
+        clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+        clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END,   sizeof(time_end),   &time_end,   NULL);
+    
+        double elapsed_ns = (double)(time_end - time_start);
+        double elapsed_ms = elapsed_ns * 1e-6;
+        std::cout<<"Runtime "<<elapsed_ms<<std::endl;
+        return elapsed_ms;
     }
 
     void readGpuBuffer(cl_mem buffer, size_t size_in_bytes_to_read, void* dst) {
@@ -142,6 +155,18 @@ public:
     cl_command_queue queue;
 
 private:
+
+    void preloadKernels() {
+        std::ifstream file("mm.cl");
+        if(!file.is_open()) throw std::runtime_error("Failed to open kernel file");
+    
+        std::ostringstream oss;
+        oss << file.rdbuf();
+        std::string source = oss.str();
+
+        getProgram(source);
+    }
+
     OpenCLContext() {
         cl_uint num_platforms;
         clGetPlatformIDs(0, nullptr, &num_platforms);
@@ -157,7 +182,9 @@ private:
 
         context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, nullptr);
 
-        queue = clCreateCommandQueue(context, device, 0, nullptr);
+        queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, nullptr);
+
+        preloadKernels();
     }
 
     OpenCLContext(const OpenCLContext&) = delete;
