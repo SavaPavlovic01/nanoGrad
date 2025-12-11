@@ -78,9 +78,9 @@ public:
         return kernel_cache[name];
     }
 
-    cl_mem allocateBuffer(size_t size, cl_mem_flags flags = CL_MEM_READ_WRITE) {
+    cl_mem allocateBuffer(size_t size, cl_mem_flags flags = CL_MEM_READ_WRITE, void* data = nullptr) {
         cl_int err;
-        cl_mem buf = clCreateBuffer(context, flags, size, nullptr, &err);
+        cl_mem buf = clCreateBuffer(context, flags, size, data, &err);
         if (err != CL_SUCCESS) {
             throw std::runtime_error("Failed to create OpenCL buffer");
         }

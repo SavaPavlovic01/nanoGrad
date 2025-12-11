@@ -83,6 +83,53 @@ void copy_kernel_gpu(cl_mem src, cl_mem dest, size_t n) {
     context.runKernel(kernel, {global_size});
 }
 
+template<typename T>
+void contiguous_kernel(cl_mem src, cl_mem dest,  std::vector<uint32_t>& shape,  std::vector<uint32_t> strides, const uint32_t ndim, const uint32_t numel) {
+    auto& context = OpenCLContext::get();
+
+    std::string kernel_name = std::format("contiguous_{}", OpenCLContext::type_to_cl_string<T>());
+
+    cl_kernel kernel;
+    std::optional<cl_kernel> probe_kernel = context.get_kernel_by_name(kernel_name);
+    if(!probe_kernel.has_value()) {
+        std::string kernel_src = std::format(R"(
+        
+        __kernel void {}(__global const {}* src, __global {}* dest, 
+            __global const uint* shape, __global const uint* strides, const uint ndim, const uint numel) {{
+            int idx = get_global_id(0);
+            if(idx >= numel) return;
+
+            int index = 0;
+            for(int i = ndim - 1; i >= 0; i--) {{
+                int dim_idx = index % shape[i];
+                idx /= shape[i];
+                index += dim_idx * strides[i];
+        }} 
+
+            dest[idx] = src[index]; 
+        }})",
+                            kernel_name,
+                            OpenCLContext::type_to_cl_string<T>(),
+                            OpenCLContext::type_to_cl_string<T>());
+        kernel = context.get_or_make_kernel(kernel_name, kernel_src);
+    } else {
+            kernel = probe_kernel.value();
+    }
+
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &src);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &dest);
+
+    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, shape.data());
+    cl_mem strides_buffer = context.allocateBuffer(strides.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, strides.data());
+
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &shape_buffer);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), &strides_buffer);
+    clSetKernelArg(kernel, 4, sizeof(uint32_t), &ndim);
+    clSetKernelArg(kernel, 5, sizeof(uint32_t), &numel);
+    
+    size_t global_size = ((numel + 255) / 256) * 256;
+    context.runKernel(kernel, {global_size});
+}
 
 inline void fill_random_gpu_philox_float32(cl_mem buffer, uint64_t size, uint32_t seed) {
     std::string kernel_src = R"(

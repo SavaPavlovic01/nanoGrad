@@ -7,10 +7,10 @@ int main() {
     register_all_read_kernels();
     register_all_write_elem();
     register_all_add_kernels();
-    auto tensor = Tensor::ones({3, 4}, DType::Float32, DeviceType::GPU);
-    auto tensor1 = Tensor::ones({4, 3}, DType::Float32, DeviceType::GPU);
-    auto test = tensor.mm(tensor1);
-    std::cout<<test.shape[0]<<", "<<test.shape[1]<<std::endl;
-    std::cout<<test.index({1, 1})<<std::endl;
+    auto tensor = Tensor::rand({5, 5}, 42, DeviceType::GPU);
+    auto reshape = tensor.reshape({25});
+    std::cout<<reshape.shape[0]<<std::endl;
+    std::cout<<tensor.index({4, 3})<<std::endl;
+    std::cout<<reshape.index({23})<<std::endl;
     return 0;
 }

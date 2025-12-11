@@ -16,10 +16,12 @@ public:
         else {
             storage = std::make_shared<GPUStorage>(n, dtype);
         }
+        numel = calc_numel(sizes);
     }
 
     Tensor(std::vector<uint32_t> sizes, DType dtype, DeviceType device, std::shared_ptr<Storage> storage): shape(sizes), dtype(dtype), device(device), storage(storage) {
         strides = getStrides(sizes); 
+        numel = calc_numel(sizes);
     }
 
     static Tensor ones(std::vector<uint32_t> shape, DType dtype = DType::Float32, DeviceType device = DeviceType::CPU) {
@@ -86,6 +88,39 @@ public:
         return t + value;
     }
 
+    Tensor reshape(const std::vector<uint32_t> new_shape) {
+        if(numel != calc_numel(new_shape)) throw std::runtime_error("Cant reshape like that");
+
+        if(!is_contiguous()){
+            return contiguous().reshape(new_shape);
+        }
+
+        return Tensor(new_shape, this->dtype, this->device, this->storage);
+    }
+        
+
+    Tensor contiguous() {
+        if(is_contiguous()) return *this;
+        return Tensor(shape, dtype, device, storage->contiguous(shape, strides, shape.size(), numel));
+    }
+
+    bool is_contiguous() {
+        uint32_t target_stride = 1;
+        for(int i = shape.size() - 1; i >= 0; i--) {
+            if(shape[i] != 1 && strides[i] != target_stride) return false;
+            target_stride *= shape[i];
+        }
+        return true;
+    }
+
+
+    uint32_t calc_numel(std::vector<uint32_t> sizes) {
+        uint32_t numel = 1;
+        for(uint32_t size: sizes) {
+            numel *= size;
+        }
+        return numel;
+    }
 
     std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape) {
         uint64_t acc = 1;
@@ -99,6 +134,7 @@ public:
 
     std::shared_ptr<Storage> storage;
     std::vector<uint32_t> shape;
+    uint32_t numel;
     std::vector<uint32_t> strides;
     DeviceType device;
     DType dtype;

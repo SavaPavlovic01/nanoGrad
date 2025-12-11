@@ -133,6 +133,17 @@ public:
         return result;
     }
 
+    std::shared_ptr<Storage> contiguous( std::vector<uint32_t>& shape,  std::vector<uint32_t>& strides, uint32_t ndim, uint32_t numel) {
+        auto& context = OpenCLContext::get();
+        std::shared_ptr<Storage> result;
+        dispatch_type(dtype, [&]<typename T>() {
+            auto out = std::make_shared<GPUStorage>(numel, dtype);
+            contiguous_kernel<T>(this->data, out->data, shape, strides, ndim, numel);
+            result = out;
+        });
+        return result;
+    }
+
     std::shared_ptr<Storage> mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 
         const std::vector<uint32_t>& this_sizes, const std::vector<uint32_t>& this_strides){
         auto& context = OpenCLContext::get();
