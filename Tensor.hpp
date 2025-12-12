@@ -139,4 +139,5 @@ public:
     DeviceType device;
     DType dtype;
 
+    bool requires_grad = false;
 };
