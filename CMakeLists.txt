@@ -16,6 +16,7 @@ add_compile_definitions(CL_TARGET_OPENCL_VERSION=100)
 set(SOURCES
     main.cpp
     Registry.cpp
+    Tensor.cpp
 )
 
 include_directories(

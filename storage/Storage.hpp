@@ -26,6 +26,8 @@ public:
     virtual void mult_into(double value){throw  std::runtime_error("Not yet implemented");}
     virtual void sub_into(double value){throw  std::runtime_error("Not yet implemented");}
 
+    virtual void negate(){throw std::runtime_error("Not yet implemented");}
+
     virtual std::shared_ptr<Storage> contiguous( std::vector<uint32_t>& shape,  std::vector<uint32_t>& strides, uint32_t ndim, uint32_t numel) {throw  std::runtime_error("Not yet implemented");}
 
     virtual std::shared_ptr<Storage>mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 

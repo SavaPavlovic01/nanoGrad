@@ -26,6 +26,10 @@ public:
         });
     }
 
+    ~GPUStorage() {
+        clReleaseMemObject(data);
+    }
+
     void fill(double value) override {
         dispatch_type(this->dtype, [&]<typename T>() {
             fill_kernel_gpu_better<T>(this->data, 1.0, this->numel);
@@ -142,6 +146,12 @@ public:
             result = out;
         });
         return result;
+    }
+
+    void negate() override {
+        dispatch_type(dtype, [&]<typename T>() {
+            negate_kernel_opencl<T>(data, numel);
+        });
     }
 
     std::shared_ptr<Storage> mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 
