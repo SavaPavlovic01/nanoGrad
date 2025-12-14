@@ -22,6 +22,11 @@ public:
                        DType dtype = DType::Float32,
                        DeviceType device = DeviceType::CPU);
 
+
+    static Tensor zeros(std::vector<uint32_t> shape,
+                       DType dtype = DType::Float32,
+                       DeviceType device = DeviceType::CPU);
+
     static Tensor rand(std::vector<uint32_t> sizes,
                        uint32_t seed = 42,
                        DeviceType device = DeviceType::CPU);
@@ -42,6 +47,7 @@ public:
     void backward();
 
     Tensor mm(const Tensor& b);
+    Tensor transpose();
 
     friend Tensor operator+(const Tensor& t, double value);
     friend Tensor operator+(double value, const Tensor& t);
@@ -65,5 +71,5 @@ public:
     DType dtype;
     std::shared_ptr<GradFn> gradFn;
 
-    bool requires_grad = true;
+    bool requires_grad = false;
 };

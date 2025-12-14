@@ -32,7 +32,7 @@ public:
 
     void fill(double value) override {
         dispatch_type(this->dtype, [&]<typename T>() {
-            fill_kernel_gpu_better<T>(this->data, 1.0, this->numel);
+            fill_kernel_gpu_better<T>(this->data, value, this->numel);
         });
     }
 

@@ -18,19 +18,15 @@ int main() {
    //     std::cout<<"OK"<<std::endl;
    // }
    // std::cout<<res.index({0, 0})<<std::endl;
-    auto tensor = Tensor::rand({1}, 42, DeviceType::GPU);
-    auto t1 =  Tensor::rand({1}, 42, DeviceType::GPU);
-    auto t2 =  Tensor::rand({1}, 42, DeviceType::GPU);
-    auto t3 =  Tensor::rand({1}, 42, DeviceType::GPU);
+    auto t0 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
+    t0.requires_grad = true;
+    auto t1 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
+    t1.requires_grad = true;
 
-    auto mult = tensor * t1;
-    auto t4 = mult + t2;
-    if(t4.shape.empty() || t1.shape.empty() || t2.shape.empty() || tensor.shape.empty() ){
-        std::cout<<"SMOEONE";
-    }
-    t4.backward();
-    
-    std::cout<<"Je;;"<<std::endl;
-    std::cout<<std::endl<<t1.grad->index({0})<<std::endl;
+   
+    auto res = t0.mm(t1);
+    res.grad = std::make_shared<Tensor>(Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU));
+    res.backward();
+    std::cout<<std::endl<<t0.grad->index({0, 0})<<std::endl;
     return 0;
 }

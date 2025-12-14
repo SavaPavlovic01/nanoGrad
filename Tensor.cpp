@@ -4,6 +4,7 @@
 #include "GPUStorage.hpp"
 #include <stdexcept>
 #include "GradFn.hpp"
+#include <algorithm>
 
 Tensor::Tensor(std::vector<uint32_t> sizes,
                DType dtype,
@@ -36,6 +37,14 @@ Tensor Tensor::ones(std::vector<uint32_t> shape,
                     DeviceType device){
     Tensor t(shape, dtype, device);
     t.storage->fill(1);
+    return t;
+}
+
+Tensor Tensor::zeros(std::vector<uint32_t> shape,
+                    DType dtype,
+                    DeviceType device){
+    Tensor t(shape, dtype, device);
+    t.storage->fill(0);
     return t;
 }
 
@@ -135,12 +144,13 @@ Tensor& Tensor::operator-() {
 }
 
 Tensor Tensor::mm(const Tensor& b){
-    return Tensor(
-        {shape[0], b.shape[1]},
-        dtype,
-        device,
-        storage->mm(b.storage, b.shape, b.strides, shape, strides)
-    );
+    Tensor out({shape[0], b.shape[0]}, dtype, device, storage->mm(b.storage, b.shape, b.strides, shape, strides));
+    if(this->requires_grad || b.requires_grad) {
+        out.requires_grad = true;
+        out.gradFn = std::make_shared<MatrixMultGradFn>(*this, const_cast<Tensor&>(b));
+    }
+
+    return out;
 }
 
 Tensor operator+(const Tensor& t, double value){
@@ -202,27 +212,24 @@ std::vector<uint32_t> Tensor::getStrides(std::vector<uint32_t>& shape){
 
 void Tensor::backward() {
     if(!requires_grad || gradFn.get() == nullptr) {
-        std::cout<<"HEELL"<<std::endl;
         return;
     }
-    std::cout<<"asdf"<<std::endl;
     if(grad.get() == nullptr) {
-        std::cout<<"EVE me"<<std::endl;
-        std::cout<<shape[0]<<std::endl;
         this->grad = std::make_shared<Tensor>(Tensor::ones(shape, dtype, device));
     }
-    std::cout<<"INDEX\n";
-    std::cout<<grad->index({0})<<std::endl;
     gradFn->backward(grad);
 }
 
 void Tensor::lazy_init_grads() {
     if(requires_grad && grad.get() == nullptr) {
-        std::cout<<"from lazy ";
-        if(shape.empty()) {
-            std::cout<<"WERWEREWR";
-        }
-        grad = std::make_shared<Tensor>(Tensor::ones(shape, dtype, device));
+        grad = std::make_shared<Tensor>(Tensor::zeros(shape, dtype, device));
     }
     return;
+}
+
+Tensor Tensor::transpose() {
+    Tensor out(shape, dtype, device, storage);
+    std::reverse(out.shape.begin(), out.shape.end());
+    std::reverse(out.strides.begin(), out.strides.end());
+    return out;
 }
