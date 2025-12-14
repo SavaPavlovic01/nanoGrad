@@ -144,7 +144,7 @@ Tensor& Tensor::operator-() {
 }
 
 Tensor Tensor::mm(const Tensor& b){
-    Tensor out({shape[0], b.shape[0]}, dtype, device, storage->mm(b.storage, b.shape, b.strides, shape, strides));
+    Tensor out({shape[0], b.shape[1]}, dtype, device, storage->mm(b.storage, b.shape, b.strides, shape, strides));
     if(this->requires_grad || b.requires_grad) {
         out.requires_grad = true;
         out.gradFn = std::make_shared<MatrixMultGradFn>(*this, const_cast<Tensor&>(b));
