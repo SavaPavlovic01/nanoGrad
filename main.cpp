@@ -17,7 +17,6 @@ int main() {
    // if(res.requires_grad) {
    //     std::cout<<"OK"<<std::endl;
    // }
-   // std::cout<<res.index({0, 0})<<std::endl;
     auto t0 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
     t0.requires_grad = true;
     auto t1 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
