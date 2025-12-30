@@ -117,3 +117,57 @@ void negate_kernel_opencl(cl_mem a, size_t n){
     size_t global_size = ((n + 255) / 256) * 256;
     context.runKernel(kernel, {global_size});
 }
+
+// TODO: for linear ones you dont have to do this loop stuff
+// you can forbid tanh on int tensors, or make it return a float tensor
+template<typename T1>
+void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t> shape, const std::vector<uint32_t> stride, size_t n) {
+    auto& context = OpenCLContext::get(); 
+    std::string kernel_name = std::format("tanh_{}", OpenCLContext::type_to_cl_string<T1>());
+
+    cl_kernel kernel;
+    std::optional<cl_kernel> probe_kernel = context.get_kernel_by_name(kernel_name);
+    if(!probe_kernel.has_value()) {
+        std::string kernel_src = std::format(R"(
+            __kernel void {}(__global float* dest,
+                            __global const {}* src,
+                            __global const uint* shape,
+                            __global const uint* stride, 
+                            ulong dimCnt,
+                            ulong n) {{
+
+                size_t gid = get_global_id(0);
+                if (gid >= n) return;
+
+                ulong offset = 1;
+                ulong linear = gid;
+
+
+                for(int d = dimCnt - 1; d >= 0; d--) {
+                    ulong idx = linear % shape[d];
+                    linear /= shape[d];
+                    offset += idx * stride[d];
+                }
+
+                dest[offset] = tanh((float)src[offset]); // cast for int tensors
+            }}
+        )", kernel_name,
+            OpenCLContext::type_to_cl_string<T1>());
+        kernel = context.get_or_make_kernel(kernel_name, kernel_src);
+    } else {
+        kernel = probe_kernel.value();
+    }
+
+    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, shape.data());
+    cl_mem strides_buffer = context.allocateBuffer(strides.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, strides.data());
+
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &dest);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &src);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &shape);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), &stride);
+    clSetKernelArg(kernel, 4, sizeof(uint64_t), &shape.size());
+    clSetKernelArg(kernel, 5, sizeof(uint64_t), &n);
+    
+    size_t global_size = ((n + 255) / 256) * 256;
+    context.runKernel(kernel, {global_size});
+}

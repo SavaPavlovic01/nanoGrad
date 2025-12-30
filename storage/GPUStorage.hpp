@@ -185,6 +185,10 @@ public:
         return std::make_shared<GPUStorage>(this_sizes[0] * other_sizes[1], DType::Float32, dest_buffer);
     }
 
+    std::shared_ptr<Storage> tanh(const std::vector<uint32_t> shape, const std::vector<uint32_t> strides) override {
+        
+    }    
+
 
     cl_mem data;
 };
