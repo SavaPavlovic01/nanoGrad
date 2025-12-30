@@ -170,4 +170,7 @@ void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t> sha
     
     size_t global_size = ((n + 255) / 256) * 256;
     context.runKernel(kernel, {global_size});
+
+    clReleaseMemObject(shape_buffer);
+    clReleaseMemObject(strides_buffer);
 }

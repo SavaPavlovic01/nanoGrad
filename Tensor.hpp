@@ -61,6 +61,7 @@ public:
     uint32_t calc_numel(std::vector<uint32_t> sizes);
     std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape);
     void lazy_init_grads();
+    Tensor tanh();
 
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;

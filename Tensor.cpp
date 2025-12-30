@@ -233,3 +233,10 @@ Tensor Tensor::transpose() {
     std::reverse(out.strides.begin(), out.strides.end());
     return out;
 }
+
+// output tensor is always float32
+// TODO: add faster tanh kernel and check here if the tensor is contiguous
+Tensor Tensor::tanh(){
+    auto newStorage = storage->tanh(shape, strides, numel);
+    return Tensor(shape, DType::Float32, device, newStorage);
+}

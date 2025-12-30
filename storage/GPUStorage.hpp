@@ -185,8 +185,15 @@ public:
         return std::make_shared<GPUStorage>(this_sizes[0] * other_sizes[1], DType::Float32, dest_buffer);
     }
 
-    std::shared_ptr<Storage> tanh(const std::vector<uint32_t> shape, const std::vector<uint32_t> strides) override {
-        
+    std::shared_ptr<Storage> tanh(const std::vector<uint32_t> shape, const std::vector<uint32_t> strides, size_t numel) override {
+        auto& context = OpenCLContext::get();
+        std::shared_ptr<Storage> result;
+        cl_mem destBuffer = context.allocateBuffer(numel * sizeof(float), CL_MEM_READ_WRITE);
+        dispatch_type(dtype, [&]<typename T>() {
+            tanh_kernel_opencl<T>(data, destBuffer, shape, stride, numel);
+            result = std::make_shared<GPUStorage>(numel, DType::Float32, destBuffer);
+        });
+        return result;
     }    
 
 
