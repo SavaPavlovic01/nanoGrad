@@ -139,7 +139,7 @@ void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t>& sh
                 size_t gid = get_global_id(0);
                 if (gid >= n) return;
 
-                ulong offset = 1;
+                ulong offset = 0;
                 ulong linear = gid;
 
 
