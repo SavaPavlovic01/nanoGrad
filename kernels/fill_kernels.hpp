@@ -84,7 +84,7 @@ void copy_kernel_gpu(cl_mem src, cl_mem dest, size_t n) {
 }
 
 template<typename T>
-void contiguous_kernel(cl_mem src, cl_mem dest,  std::vector<uint32_t>& shape,  std::vector<uint32_t> strides, const uint32_t ndim, const uint32_t numel) {
+void contiguous_kernel(cl_mem src, cl_mem dest,const std::vector<uint32_t>& shape, const std::vector<uint32_t>& strides, const uint32_t ndim, const uint32_t numel) {
     auto& context = OpenCLContext::get();
 
     std::string kernel_name = std::format("contiguous_{}", OpenCLContext::type_to_cl_string<T>());
@@ -119,8 +119,8 @@ void contiguous_kernel(cl_mem src, cl_mem dest,  std::vector<uint32_t>& shape,  
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &src);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &dest);
 
-    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, shape.data());
-    cl_mem strides_buffer = context.allocateBuffer(strides.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, strides.data());
+    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, (void*)shape.data());
+    cl_mem strides_buffer = context.allocateBuffer(strides.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, (void*)strides.data());
 
     clSetKernelArg(kernel, 2, sizeof(cl_mem), &shape_buffer);
     clSetKernelArg(kernel, 3, sizeof(cl_mem), &strides_buffer);

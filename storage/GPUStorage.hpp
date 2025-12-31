@@ -190,7 +190,7 @@ public:
         std::shared_ptr<Storage> result;
         cl_mem destBuffer = context.allocateBuffer(numel * sizeof(float), CL_MEM_READ_WRITE);
         dispatch_type(dtype, [&]<typename T>() {
-            tanh_kernel_opencl<T>(data, destBuffer, shape, stride, numel);
+            tanh_kernel_opencl<T>(data, destBuffer, shape, strides, numel);
             result = std::make_shared<GPUStorage>(numel, DType::Float32, destBuffer);
         });
         return result;

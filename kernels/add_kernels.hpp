@@ -121,7 +121,7 @@ void negate_kernel_opencl(cl_mem a, size_t n){
 // TODO: for linear ones you dont have to do this loop stuff
 // you can forbid tanh on int tensors, or make it return a float tensor
 template<typename T1>
-void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t> shape, const std::vector<uint32_t> stride, size_t n) {
+void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t>& shape, const std::vector<uint32_t>& stride, size_t n) {
     auto& context = OpenCLContext::get(); 
     std::string kernel_name = std::format("tanh_{}", OpenCLContext::type_to_cl_string<T1>());
 
@@ -143,11 +143,11 @@ void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t> sha
                 ulong linear = gid;
 
 
-                for(int d = dimCnt - 1; d >= 0; d--) {
+                for(int d = dimCnt - 1; d >= 0; d--) {{
                     ulong idx = linear % shape[d];
                     linear /= shape[d];
                     offset += idx * stride[d];
-                }
+                }}
 
                 dest[offset] = tanh((float)src[offset]); // cast for int tensors
             }}
@@ -158,14 +158,15 @@ void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t> sha
         kernel = probe_kernel.value();
     }
 
-    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, shape.data());
-    cl_mem strides_buffer = context.allocateBuffer(strides.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, strides.data());
+    cl_mem shape_buffer = context.allocateBuffer(shape.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, (void*)shape.data());
+    cl_mem strides_buffer = context.allocateBuffer(stride.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, (void*)stride.data());
 
+    int dimCnt = shape.size();
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &dest);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &src);
-    clSetKernelArg(kernel, 2, sizeof(cl_mem), &shape);
-    clSetKernelArg(kernel, 3, sizeof(cl_mem), &stride);
-    clSetKernelArg(kernel, 4, sizeof(uint64_t), &shape.size());
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &shape_buffer);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), &strides_buffer);
+    clSetKernelArg(kernel, 4, sizeof(uint64_t), &dimCnt);
     clSetKernelArg(kernel, 5, sizeof(uint64_t), &n);
     
     size_t global_size = ((n + 255) / 256) * 256;
