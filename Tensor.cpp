@@ -237,6 +237,10 @@ Tensor Tensor::transpose() {
 // output tensor is always float32
 // TODO: add faster tanh kernel and check here if the tensor is contiguous
 Tensor Tensor::tanh(){
-    auto newStorage = storage->tanh(shape, strides, numel);
-    return Tensor(shape, DType::Float32, device, newStorage);
+    auto out = Tensor(shape, dtype, device, storage->tanh(shape, strides, numel));
+    if(requires_grad) {
+        out.requires_grad = true;
+        out.gradFn = std::make_shared<TanhGradFn>(*this);
+    }
+    return out;
 }

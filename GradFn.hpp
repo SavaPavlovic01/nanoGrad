@@ -125,3 +125,23 @@ public:
     }
 
 };
+
+class TanhGradFn : public GradFn {
+public:
+    Tensor& a;
+
+    TanhGradFn(Tensor& a) : a(a) {}
+
+    // TODO: reuse the tanh from the forward pass
+    void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        if(a.requires_grad) {
+            a.lazy_init_grads(); 
+            Tensor temp = a.tanh();
+            Tensor tempRes = -temp * temp + 1;
+            *a.grad += *grad_tensor * ( (- temp * temp + 1)); // 1 - tanh(x)^2
+        }
+
+        a.backward();
+    }
+
+};

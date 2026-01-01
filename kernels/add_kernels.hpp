@@ -142,7 +142,6 @@ void tanh_kernel_opencl(cl_mem src, cl_mem dest, const std::vector<uint32_t>& sh
                 ulong offset = 0;
                 ulong linear = gid;
 
-
                 for(int d = dimCnt - 1; d >= 0; d--) {{
                     ulong idx = linear % shape[d];
                     linear /= shape[d];
