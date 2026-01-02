@@ -22,3 +22,32 @@ __kernel void softmax_naive(__global const float* src, __global float* dest, uin
         dest[base + i] = exp(src[base + i] - m) / sum;
     }
 }
+
+
+__kernel void softmax_cross_entropy_naive(
+    __global const float* logits,   
+    __global const uint* targets,   
+    __global float* loss,           
+    uint V,
+    uint B
+) {
+    uint b = get_global_id(0);
+    if (b >= B) return;
+
+    uint base = b * V;
+    uint y = targets[b];
+
+    float m = logits[base];
+    for (uint i = 1; i < V; i++) {
+        m = fmax(m, logits[base + i]);
+    }
+
+    float sum = 0.0f;
+    for (uint i = 0; i < V; i++) {
+        sum += exp(logits[base + i] - m);
+    }
+
+    float log_sum_exp = log(sum);
+
+    loss[b] = -(logits[base + y] - m - log_sum_exp);
+}
