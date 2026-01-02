@@ -244,3 +244,8 @@ Tensor Tensor::tanh(){
     }
     return out;
 }
+
+Tensor& Tensor::negate() {
+    storage->negate();
+    return *this;
+}

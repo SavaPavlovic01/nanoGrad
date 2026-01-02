@@ -63,6 +63,8 @@ public:
     void lazy_init_grads();
     Tensor tanh();
 
+    Tensor& negate();
+
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;
     std::vector<uint32_t> shape;

@@ -137,8 +137,8 @@ public:
         if(a.requires_grad) {
             a.lazy_init_grads(); 
             Tensor temp = a.tanh();
-            Tensor tempRes = -temp * temp + 1;
-            *a.grad += *grad_tensor * ( (- temp * temp + 1)); // 1 - tanh(x)^2
+            Tensor tempRes = (temp * temp).negate() + 1;
+            *a.grad += *grad_tensor * tempRes; // 1 - tanh(x)^2
         }
 
         a.backward();
