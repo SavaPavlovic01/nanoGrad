@@ -254,3 +254,9 @@ Tensor Tensor::softmax() {
     auto out = Tensor(shape, DType::Float32, device, storage->softmax(shape, strides, numel));
     return out;
 }
+
+// TODO: not really correct, you return loss per batch, should be one number
+Tensor Tensor::cross_entropy(const Tensor& targets){
+    auto out = Tensor({shape[0]}, DType::Float32, device, storage->cross_entropy(targets.storage, shape));
+    return out;
+}

@@ -9,16 +9,12 @@ int main() {
     register_all_read_kernels();
     register_all_write_elem();
     register_all_add_kernels();
-    uint32_t size = 3;
-   // auto tensor = Tensor::rand({size, size}, 42, DeviceType::GPU);
-   // tensor.requires_grad = true;
-   // auto tensor1 = Tensor::rand({size, size}, 42, DeviceType::GPU);
-   // auto res = tensor1 + tensor;
-   // if(res.requires_grad) {
-   //     std::cout<<"OK"<<std::endl;
-   // }
-    auto t0 = Tensor::ones({4, 4}, DType::Float32, DeviceType::GPU);
-    auto soft = t0.softmax();
-    std::cout<< soft.index({1, 0}) << std::endl;
+    
+    auto logits = Tensor::ones({5, 20}, DType::Float32, DeviceType::GPU);
+    auto targets = Tensor::ones({5}, DType::Int32, DeviceType::GPU);
+
+    auto losses = logits.cross_entropy(targets);
+
+    std::cout<< losses.shape[0] << std::endl << losses.index({0}) << ", " << losses.index({1}) << std::endl;
     return 0;
 }
