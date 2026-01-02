@@ -17,10 +17,8 @@ int main() {
    // if(res.requires_grad) {
    //     std::cout<<"OK"<<std::endl;
    // }
-    auto t0 = Tensor::ones({3, 3}, DType::Float32, DeviceType::GPU);
-    t0.requires_grad = true;
-    auto res = t0.tanh();
-    res.backward();
-    std::cout<<std::endl<< t0.grad->index({0, 0}) << std::endl <<res.index({0, 0})<<std::endl;
+    auto t0 = Tensor::ones({4, 4}, DType::Float32, DeviceType::GPU);
+    auto soft = t0.softmax();
+    std::cout<< soft.index({1, 0}) << std::endl;
     return 0;
 }

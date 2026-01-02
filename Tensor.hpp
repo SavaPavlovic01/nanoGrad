@@ -62,6 +62,7 @@ public:
     std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape);
     void lazy_init_grads();
     Tensor tanh();
+    Tensor softmax();
 
     Tensor& negate();
 

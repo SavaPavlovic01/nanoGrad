@@ -196,6 +196,26 @@ public:
         return result;
     }    
 
+    // TODO: right now just for float32, and using naive softmax
+    std::shared_ptr<Storage> softmax(const std::vector<uint32_t>& shape, const std::vector<uint32_t> stride, size_t numel) override {
+        auto& context = OpenCLContext::get();
+        auto kernel = context.get_kernel_by_name("softmax_naive");
+        if(!kernel.has_value()) {
+            throw std::runtime_error("WTF");
+        }
+        cl_mem dest = context.allocateBuffer(numel * sizeof(float), CL_MEM_READ_WRITE);
+        clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &data);
+        clSetKernelArg(kernel.value(), 1, sizeof(cl_mem), &dest);
+        clSetKernelArg(kernel.value(), 2, sizeof(uint32_t), &shape[1]);
+        clSetKernelArg(kernel.value(), 3, sizeof(uint32_t), &shape[0]);
+
+        size_t global_dim_x = ((shape[0] + 256) / 256) * 256;
+        context.runKernel(kernel.value(), {global_dim_x});
+
+        return std::make_shared<GPUStorage>(numel, DType::Float32, dest);
+
+    }
+
 
     cl_mem data;
 };

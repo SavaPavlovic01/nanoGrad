@@ -157,14 +157,18 @@ public:
 private:
 
     void preloadKernels() {
-        std::ifstream file("mm.cl");
-        if(!file.is_open()) throw std::runtime_error("Failed to open kernel file");
-    
-        std::ostringstream oss;
-        oss << file.rdbuf();
-        std::string source = oss.str();
+        std::vector<std::string> kernel_files = {"mm.cl", "softmax.cl"};
+        for(auto& file_name : kernel_files) {
+            std::ifstream file(file_name);
+            if(!file.is_open()) throw std::runtime_error("Failed to open kernel file");
+        
+            std::ostringstream oss;
+            oss << file.rdbuf();
+            std::string source = oss.str();
 
-        getProgram(source);
+            getProgram(source);
+            file.close();
+        }
     }
 
     OpenCLContext() {

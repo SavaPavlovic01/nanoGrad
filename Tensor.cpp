@@ -249,3 +249,8 @@ Tensor& Tensor::negate() {
     storage->negate();
     return *this;
 }
+
+Tensor Tensor::softmax() {
+    auto out = Tensor(shape, DType::Float32, device, storage->softmax(shape, strides, numel));
+    return out;
+}
