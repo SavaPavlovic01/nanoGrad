@@ -243,6 +243,32 @@ public:
 
     }
 
+    std::shared_ptr<Storage> cross_entropy_backprop(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t>& shape) override {
+        uint32_t batches = shape.at(0);
+        uint32_t vocab_size = shape.at(1);
+
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(targets.get());
+
+        auto& context = OpenCLContext::get();
+
+        auto kernel = context.get_kernel_by_name("cross_entropy_backprop");
+        if(!kernel.has_value()) {
+            throw std::runtime_error("WTF");
+        }
+
+        cl_mem dest = context.allocateBuffer(batches * vocab_size * sizeof(float), CL_MEM_READ_WRITE);
+        clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &data);
+        clSetKernelArg(kernel.value(), 1, sizeof(cl_mem), &ptr->data);
+        clSetKernelArg(kernel.value(), 2, sizeof(cl_mem), &dest);
+        clSetKernelArg(kernel.value(), 3, sizeof(uint32_t), &vocab_size);
+        clSetKernelArg(kernel.value(), 4, sizeof(uint32_t), &batches);
+
+        size_t global_dim_x = ((shape[0] + 256) / 256) * 256;
+        context.runKernel(kernel.value(), {global_dim_x});
+
+        return std::make_shared<GPUStorage>(numel, DType::Float32, dest);
+   }
+
 
     cl_mem data;
 };

@@ -51,3 +51,47 @@ __kernel void softmax_cross_entropy_naive(
 
     loss[b] = -(logits[base + y] - m - log_sum_exp);
 }
+
+inline void cross_entropy_backprop_from_probs(__global const float* probs, 
+    __global const uint* targets,
+    __global float* dest,
+    uint V,
+    uint B
+) {
+    uint r = get_global_id(0); 
+
+    if( r >= B) return;
+
+    uint base = r * V;
+    uint target = targets[r];
+
+    for(int i = 0; i < V; i++) {
+        dest[base + i] = probs[base + i];
+        if(i == target) dest[base + i] -= 1;
+    }
+}
+
+__kernel void cross_entropy_backprop(__global const float* logits, __global const uint* targets, __global float* dest, uint w, uint h) {
+    int row = get_global_id(0);
+    if(row >= h) return;
+    int base = row * w;
+
+    float m = logits[base];
+    for(int i = 1; i < w; i++) {
+        m = fmax(m, logits[base + i]);
+    }
+
+    float sum = 0.0f;
+
+    for(int i = 0; i < w; i++) {
+        sum += exp(logits[base + i] - m);
+    }
+
+    for(int i = 0; i < w; i++) {
+        dest[base + i] = exp(logits[base + i] - m) / sum;
+    }   
+
+    uint target = targets[row];
+
+    dest[base + target] -= 1;
+}

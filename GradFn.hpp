@@ -145,3 +145,19 @@ public:
     }
 
 };
+
+class CrossEntropyGradFn : public GradFn {
+public:
+    Tensor& a;
+    Tensor& targets;
+
+    CrossEntropyGradFn(Tensor& a, Tensor& targets): a(a), targets(targets) {}
+    void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        if(a.requires_grad) {
+            a.lazy_init_grads();
+            auto temp = a.cross_entropy_backprop(targets);
+            *a.grad += *grad_tensor * temp;
+        }
+        a.backward();
+    }
+};

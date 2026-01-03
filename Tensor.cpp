@@ -256,7 +256,16 @@ Tensor Tensor::softmax() {
 }
 
 // TODO: not really correct, you return loss per batch, should be one number
-Tensor Tensor::cross_entropy(const Tensor& targets){
+Tensor Tensor::cross_entropy(Tensor& targets){
     auto out = Tensor({shape[0]}, DType::Float32, device, storage->cross_entropy(targets.storage, shape));
+    if(requires_grad) {
+        out.requires_grad = true;
+        out.gradFn = std::make_shared<CrossEntropyGradFn>(*this, targets);
+    }
+    return out;
+}
+
+Tensor Tensor::cross_entropy_backprop(Tensor& targets) {
+    auto out = Tensor(shape, dtype, device, storage->cross_entropy_backprop(targets.storage, shape));
     return out;
 }

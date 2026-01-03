@@ -63,7 +63,8 @@ public:
     void lazy_init_grads();
     Tensor tanh();
     Tensor softmax();
-    Tensor cross_entropy(const Tensor&);
+    Tensor cross_entropy(Tensor&);
+    Tensor cross_entropy_backprop(Tensor&);
 
     Tensor& negate();
 

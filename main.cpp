@@ -11,10 +11,12 @@ int main() {
     register_all_add_kernels();
     
     auto logits = Tensor::ones({5, 20}, DType::Float32, DeviceType::GPU);
+    logits.requires_grad = true;
     auto targets = Tensor::ones({5}, DType::Int32, DeviceType::GPU);
 
     auto losses = logits.cross_entropy(targets);
-
+    losses.backward();
     std::cout<< losses.shape[0] << std::endl << losses.index({0}) << ", " << losses.index({1}) << std::endl;
+    std::cout << logits.grad->index({0, 0}) << std::endl;
     return 0;
 }

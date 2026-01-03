@@ -37,6 +37,7 @@ public:
 
     virtual std::shared_ptr<Storage> softmax(const std::vector<uint32_t>& shape, const std::vector<uint32_t> stride, size_t numel){throw std::runtime_error("not yet");};
     virtual std::shared_ptr<Storage> cross_entropy(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t> shape) {throw std::runtime_error("not yet");}
+    virtual std::shared_ptr<Storage> cross_entropy_backprop(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
 
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
