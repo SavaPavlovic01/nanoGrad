@@ -26,6 +26,11 @@ public:
         });
     }
 
+    GPUStorage(const std::vector<int>& buffer, size_t numel) : Storage(DType::Int32, numel) {
+        auto& context = OpenCLContext::get();
+        data = context.allocateBuffer(size, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR , (void*)buffer.data());
+    }
+
     ~GPUStorage() {
         clReleaseMemObject(data);
     }
@@ -37,7 +42,11 @@ public:
     }
 
     double read(uint32_t offset) override{
-        return READ_REGISTRY.dispatch(dtype, DeviceType::GPU)(data, offset); 
+        //return READ_REGISTRY.dispatch(DType::Float32, DeviceType::GPU)(data, offset); 
+        auto& context = OpenCLContext::get();
+        float dst;
+        context.readInOneFloat(data, offset, &dst);
+        return dst;
     }
 
 
@@ -267,8 +276,18 @@ public:
         context.runKernel(kernel.value(), {global_dim_x});
 
         return std::make_shared<GPUStorage>(numel, DType::Float32, dest);
-   }
+    }
 
 
+    void read_buffer(void *dst) {
+        auto& context = OpenCLContext::get();
+        context.readGpuBuffer(data, size, dst);
+    } 
+ 
     cl_mem data;
+
+    std::unique_ptr<uint8_t[]> host_storage_cache;
+    bool cache_valid = false;
+  
+   
 };

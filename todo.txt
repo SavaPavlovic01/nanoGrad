@@ -1,7 +1,8 @@
-tanh (or relu) forward and bacwards pass
-some loss function
+!!!!!!!!!!!!!!!!FIX READING PLSSSSS!!!!!!!!!!!!!!!!!!!!!!
+
 try to make some simple mlp
 
 tiled matrix mult
+better softmax
 
-refactor pretty much all ops to take in the stride
+refactor pretty much all ops to take in the stride, offset

@@ -42,6 +42,10 @@ public:
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
     virtual void rand_fill(uint32_t seed) = 0;
+
+    //virtual void index(uint32_t index) {throw std::runtime_error("Not yet implemented");}
+    // TODO: temp, just for testing
+    virtual void read_buffer(void* dst){throw std::runtime_error("not yet");};
     
     uint64_t numel;
     DType dtype;

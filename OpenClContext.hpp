@@ -84,6 +84,7 @@ public:
         if (err != CL_SUCCESS) {
             throw std::runtime_error("Failed to create OpenCL buffer");
         }
+
         return buf;
     }
 
@@ -126,6 +127,7 @@ public:
 
     // PLS DONT USE THIS, JUST FOR TESTING
     void readInOneFloat(cl_mem buffer, uint64_t index, void* dst) {
+        
         if(clEnqueueReadBuffer(queue, buffer, CL_TRUE, index * 4, 4, dst, 0, nullptr, nullptr) != CL_SUCCESS) {
             std::cout<<"Failed to read buffer";
         }

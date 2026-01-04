@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "GradFn.hpp"
 #include <algorithm>
+#include <cassert>
 
 Tensor::Tensor(std::vector<uint32_t> sizes,
                DType dtype,
@@ -30,6 +31,15 @@ Tensor::Tensor(std::vector<uint32_t> sizes,
     : shape(sizes), dtype(dtype), device(device), storage(storage){
     strides = getStrides(sizes);
     numel = calc_numel(sizes);
+}
+
+Tensor::Tensor(const std::vector<int>& buffer, const std::vector<uint32_t>& shape, DeviceType device) : shape(shape), dtype(DType::Int32), device(device){
+    strides = getStrides(shape);
+    std::cout<<"strides" << std::endl;
+    numel = calc_numel(shape);
+    std::cout<<"numel" << std::endl;
+
+    storage = std::make_shared<GPUStorage>(buffer, buffer.size());
 }
 
 Tensor Tensor::ones(std::vector<uint32_t> shape,
@@ -58,9 +68,13 @@ Tensor Tensor::rand(std::vector<uint32_t> sizes,
 
 float Tensor::index(std::vector<uint32_t> indices) const {
     uint32_t buffer_index = 0;
-    for (size_t i = 0; i < indices.size(); i++)
+    for (size_t i = 0; i < indices.size(); i++) {
+        std::cout<< "stride " << strides[i] << ", index " << indices[i] << std::endl;
         buffer_index += strides[i] * indices[i];
+        std::cout<< "HERE" << std::endl;
+    }
 
+    std::cout<< "INDEX PLS " << buffer_index << std::endl;
     return storage->read(buffer_index);
 }
 
@@ -199,7 +213,7 @@ uint32_t Tensor::calc_numel(std::vector<uint32_t> sizes){
     return n;
 }
 
-std::vector<uint32_t> Tensor::getStrides(std::vector<uint32_t>& shape){
+std::vector<uint32_t> Tensor::getStrides(const std::vector<uint32_t>& shape){
     uint64_t acc = 1;
     std::vector<uint32_t> strides(shape.size());
 
@@ -268,4 +282,21 @@ Tensor Tensor::cross_entropy(Tensor& targets){
 Tensor Tensor::cross_entropy_backprop(Tensor& targets) {
     auto out = Tensor(shape, dtype, device, storage->cross_entropy_backprop(targets.storage, shape));
     return out;
+}
+
+Tensor Tensor::operator[](uint32_t index) const {
+    assert(!shape.empty());
+    assert(index >= 0 && index < shape[0]);
+    Tensor out = Tensor(*this);
+    out.offset = index * strides[0];
+    out.numel = numel / shape[0];
+    out.shape.erase(out.shape.begin());
+    out.strides.erase(out.strides.begin());
+    return out;
+}
+
+std::vector<int> Tensor::data() {
+    std::vector<int> dest(numel);
+    storage->read_buffer(dest.data());
+    return dest;
 }

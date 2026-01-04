@@ -18,6 +18,12 @@ public:
            DeviceType device,
            std::shared_ptr<Storage> storage);
 
+    //Tensor(std::vector<int> vector);
+
+    Tensor(const std::vector<int>&, const std::vector<uint32_t>& shape, DeviceType device = DeviceType::CPU);
+
+    std::vector<int> data();
+
     static Tensor ones(std::vector<uint32_t> shape,
                        DType dtype = DType::Float32,
                        DeviceType device = DeviceType::CPU);
@@ -59,7 +65,7 @@ public:
     bool is_contiguous();
 
     uint32_t calc_numel(std::vector<uint32_t> sizes);
-    std::vector<uint32_t> getStrides(std::vector<uint32_t>& shape);
+    std::vector<uint32_t> getStrides(const std::vector<uint32_t>& shape);
     void lazy_init_grads();
     Tensor tanh();
     Tensor softmax();
@@ -67,6 +73,8 @@ public:
     Tensor cross_entropy_backprop(Tensor&);
 
     Tensor& negate();
+
+    Tensor operator[](uint32_t) const;  
 
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;
@@ -76,6 +84,7 @@ public:
     DeviceType device;
     DType dtype;
     std::shared_ptr<GradFn> gradFn;
+    uint64_t offset = 0;
 
     bool requires_grad = false;
 };

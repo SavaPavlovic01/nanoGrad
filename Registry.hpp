@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <memory>
 #include "Storage.hpp"
+#include <iostream>
 
 using FillFn = void(*)(void*, double, uint64_t);
 
@@ -20,6 +21,7 @@ public:
     }
 
     Fn dispatch(DType dtype, DeviceType device) {
+        auto key = makeKey(dtype, device);
         return registry.at(makeKey(dtype, device));
     }
 
