@@ -31,6 +31,16 @@ public:
         data = context.allocateBuffer(size, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR , (void*)buffer.data());
     }
 
+    GPUStorage(const std::vector<std::vector<int>>& buffer, size_t numel): Storage(DType::Int32, numel) {
+        auto& context = OpenCLContext::get();
+        std::vector<int> flat;
+        flat.reserve(numel);
+        for(const auto& row : buffer) {
+            flat.insert(flat.end(), row.begin(), row.end());    
+        }
+        data = context.allocateBuffer(size, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (void*)flat.data());
+    }
+
     ~GPUStorage() {
         clReleaseMemObject(data);
     }

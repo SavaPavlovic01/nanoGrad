@@ -35,29 +35,12 @@ void mlp_example() {
     }
 
     Tensor Ys(ys, {(uint32_t)ys.size()}, DeviceType::GPU);
+    Tensor Xs(xs, {(uint32_t)xs.size(), LOOK_BACK}, DeviceType::GPU);
 
-    auto test = Ys.data();
+    auto test = Xs.data();
     for(auto val : test) {
         std::cout<< val << std::endl;
     }
-    std::cout<<"done with test" << std::endl;
-
-    std::cout<< "strides :" << Ys.strides[0] << std::endl;
-
-    std::cout<< ys.size() << std::endl;
-    std::cout<< Ys.shape.size() << ',' << Ys.shape[0] <<std::endl;
-
-    auto& context = OpenCLContext::get();
-
-    uint32_t index = -1;
-    for(const auto& example : xs) {
-        index += 1;
-        for(const auto& index : example) {
-            std::cout<< index_to_letter(index) << ", ";
-        }
-        std::cout<< "real target:" << ys[index] << ", my target:" << (int)Ys.index({index}) << std::endl;
-    }
-
 
 }
 

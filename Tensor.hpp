@@ -22,6 +22,8 @@ public:
 
     Tensor(const std::vector<int>&, const std::vector<uint32_t>& shape, DeviceType device = DeviceType::CPU);
 
+    Tensor(const std::vector<std::vector<int>>&, const std::vector<uint32_t>& shape, DeviceType device = DeviceType::CPU);
+
     std::vector<int> data();
 
     static Tensor ones(std::vector<uint32_t> shape,
