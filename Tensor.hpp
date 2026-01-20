@@ -78,6 +78,8 @@ public:
 
     Tensor operator[](uint32_t) const;  
 
+    Tensor nab_rows(const std::vector<int>&);
+
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;
     std::vector<uint32_t> shape;

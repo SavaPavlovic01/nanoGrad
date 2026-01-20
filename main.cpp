@@ -11,14 +11,13 @@ inline char index_to_letter(const int index) {return index == 27 ? '*' : index +
 #define LOOK_BACK 3
 #define VOCAB_SIZE 27
 #define EMMBED_SIZE 3
+#define NEURON_CNT 200
 
 
 void mlp_example() {
     const std::vector<std::string> names = {"sava", "ana", "dusan", "nemanja", "petar"};
     std::vector<std::vector<int>> xs = {};
     std::vector<int> ys;
-
-    const Tensor emmbed_table = Tensor::rand({VOCAB_SIZE, EMMBED_SIZE}, 42, DeviceType::GPU);
 
     for(const auto& name: names) {
         // (batch_size, LOOK_BACK, emmbed_size) or just make it like (batch_size, LOOK_BACK * emmbed_size)
@@ -42,6 +41,24 @@ void mlp_example() {
         std::cout<< val << std::endl;
     }
 
+    Tensor C = Tensor::rand({VOCAB_SIZE, EMMBED_SIZE}, 42, DeviceType::GPU);
+    C.requires_grad = true;
+    Tensor W1 = Tensor::rand({EMMBED_SIZE * LOOK_BACK, NEURON_CNT}, 42, DeviceType::GPU);
+    W1.requires_grad = true;
+    Tensor b1 = Tensor::rand({NEURON_CNT}, 53, DeviceType::GPU);
+    b1.requires_grad = true;
+    Tensor W2 = Tensor::rand({NEURON_CNT, VOCAB_SIZE}, 42, DeviceType::GPU);
+    W2.requires_grad = true;
+    Tensor b2 = Tensor::rand({VOCAB_SIZE}, 53, DeviceType::GPU);
+    b2.requires_grad = true;
+
+    auto nab_test = C.nab_rows({0, 3, 5});
+
+    for(uint32_t i = 0; i < 3; i++){
+        for(uint32_t j = 0; j < EMMBED_SIZE; j++) {
+            std::cout<< nab_test.index({i, j})<<std::endl;
+        }
+    }
 }
 
 int main() {

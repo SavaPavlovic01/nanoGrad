@@ -305,3 +305,8 @@ std::vector<int> Tensor::data() {
     storage->read_buffer(dest.data());
     return dest;
 }
+
+Tensor Tensor::nab_rows(const std::vector<int>& indecies) {
+    Tensor out({(uint32_t)indecies.size(), shape[1]}, dtype, device, storage->new_from_rows(indecies, shape));
+    return out;
+}

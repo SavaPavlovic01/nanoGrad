@@ -181,3 +181,51 @@ inline void fill_random_gpu_philox_float32(cl_mem buffer, uint64_t size, uint32_
     size_t global_size = ((size + 255) / 256) * 256;
     context.runKernel(kernel, {global_size});
 }
+
+template<typename T>
+inline void gather_rows_2d(cl_mem src, cl_mem dest, const std::vector<int>& indecies, const std::vector<uint32_t>& shape) {
+    auto& context = OpenCLContext::get();
+
+    std::string kernel_name = std::format("gather_rows_2d{}", OpenCLContext::type_to_cl_string<T>());
+
+    cl_kernel kernel;
+    std::optional<cl_kernel> probe_kernel = context.get_kernel_by_name(kernel_name);
+    if(!probe_kernel.has_value()) {
+        std::string kernel_src = std::format(R"(
+
+            __kernel void {}(
+            __global const {}* X,
+            __global {}* Y,
+            __global const int* idx,
+            int C
+            ) {{
+                int k = get_global_id(0);
+                int c = get_global_id(1);
+
+                int src_row = idx[k];
+
+                Y[k * C + c] = X[src_row * C + c];
+            }}
+        
+            )",
+                            kernel_name,
+                            OpenCLContext::type_to_cl_string<T>(),
+                            OpenCLContext::type_to_cl_string<T>());
+        kernel = context.get_or_make_kernel(kernel_name, kernel_src);
+    } else {
+        kernel = probe_kernel.value();
+    }
+
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &src);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &dest);
+
+    cl_mem indecies_buffer = context.allocateBuffer(indecies.size() * sizeof(uint32_t), CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, (void*)indecies.data());
+
+    uint32_t C = shape[1];
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &indecies_buffer);
+    clSetKernelArg(kernel, 3, sizeof(uint32_t), &C);
+    
+    context.runKernel(kernel, {indecies.size(), C});   
+
+    clReleaseMemObject(indecies_buffer);
+}

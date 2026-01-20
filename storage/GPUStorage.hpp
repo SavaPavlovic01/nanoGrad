@@ -288,6 +288,17 @@ public:
         return std::make_shared<GPUStorage>(numel, DType::Float32, dest);
     }
 
+    std::shared_ptr<Storage> new_from_rows(const std::vector<int>& indecies, const std::vector<uint32_t>& shape) override {
+        std::shared_ptr<GPUStorage> result; 
+        auto& context = OpenCLContext::get();
+        cl_mem dest = context.allocateBuffer(indecies.size() * shape[1] * getDTypeSize(dtype));
+        dispatch_type(dtype, [&]<typename T>(){
+            auto out = std::make_shared<GPUStorage>(indecies.size() * shape[1], dtype);
+            gather_rows_2d<T>(data, out->data, indecies, shape);
+            result = out;
+        });
+        return result;
+    }
 
     void read_buffer(void *dst) {
         auto& context = OpenCLContext::get();

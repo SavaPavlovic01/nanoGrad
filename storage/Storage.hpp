@@ -39,6 +39,8 @@ public:
     virtual std::shared_ptr<Storage> cross_entropy(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t> shape) {throw std::runtime_error("not yet");}
     virtual std::shared_ptr<Storage> cross_entropy_backprop(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
 
+    virtual std::shared_ptr<Storage> new_from_rows(const std::vector<int>& indecies, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
+
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
     virtual void rand_fill(uint32_t seed) = 0;
