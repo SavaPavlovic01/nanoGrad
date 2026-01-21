@@ -117,7 +117,11 @@ public:
     
         double elapsed_ns = (double)(time_end - time_start);
         double elapsed_ms = elapsed_ns * 1e-6;
-        std::cout<<"Runtime "<<elapsed_ms<<std::endl;
+
+        char name[256];
+        size_t size = 0;
+        clGetKernelInfo(kernel, CL_KERNEL_FUNCTION_NAME, sizeof(name), name, &size);
+        std::cout<< name<<" Runtime "<<elapsed_ms<<std::endl;
         return elapsed_ms;
     }
 

@@ -16,30 +16,24 @@ inline char index_to_letter(const int index) {return index == 27 ? '*' : index +
 
 void mlp_example() {
     const std::vector<std::string> names = {"sava", "ana", "dusan", "nemanja", "petar"};
-    std::vector<std::vector<int>> xs = {};
+    std::vector<int> xs = {};
     std::vector<int> ys;
 
     for(const auto& name: names) {
-        // (batch_size, LOOK_BACK, emmbed_size) or just make it like (batch_size, LOOK_BACK * emmbed_size)
+        // (batch_size, LOOK_BACK, emmbed_size) or just make it like ()
         for(int y = 0; y < name.size() + 1; y++) {
-            std::vector<int> cur_x = {};
             for(int x = y - LOOK_BACK; x < y; x++) {
-                if(x < 0) cur_x.push_back(letter_to_index('*'));
-                else cur_x.push_back(letter_to_index(name[x]));
+                if(x < 0) xs.push_back(letter_to_index('*'));
+                else xs.push_back(letter_to_index(name[x]));
             }
-            xs.push_back(cur_x);
             ys.push_back( y < name.size() ? letter_to_index(name[y]) : letter_to_index('*'));
         }
 
     }
 
     Tensor Ys(ys, {(uint32_t)ys.size()}, DeviceType::GPU);
-    Tensor Xs(xs, {(uint32_t)xs.size(), LOOK_BACK}, DeviceType::GPU);
-
-    auto test = Xs.data();
-    for(auto val : test) {
-        std::cout<< val << std::endl;
-    }
+    // FLAT
+    Tensor Xs(xs, {(uint32_t)xs.size() * LOOK_BACK}, DeviceType::GPU);
 
     Tensor C = Tensor::rand({VOCAB_SIZE, EMMBED_SIZE}, 42, DeviceType::GPU);
     C.requires_grad = true;
@@ -52,12 +46,51 @@ void mlp_example() {
     Tensor b2 = Tensor::rand({VOCAB_SIZE}, 53, DeviceType::GPU);
     b2.requires_grad = true;
 
-    auto nab_test = C.nab_rows({0, 3, 5});
+    std::vector<Tensor*> params = {&C, &W1, &b1, &W2, &b2};
 
-    for(uint32_t i = 0; i < 3; i++){
-        for(uint32_t j = 0; j < EMMBED_SIZE; j++) {
-            std::cout<< nab_test.index({i, j})<<std::endl;
+    std::cout<< xs.size()<< std::endl;
+    std::vector<int> test_xs(xs.begin(), xs.begin() + 27);
+    std::vector<int> Y(ys.begin(), ys.begin() + 3);
+    Tensor Y_tensor(Y, {(uint32_t)Y.size()}, DeviceType::GPU);
+    std::cout<< "STARTING" << std::endl;
+    int epoch = 2;
+    for(int i = 0; i < epoch; i++) {
+        auto X = C.nab_rows(test_xs); 
+        for(auto k: X.shape) {
+            std::cout<< k << std::endl;
         }
+        std::cout<<"nab rows" << std::endl;
+        auto reshaped = X.reshape({9, 9});
+        std::cout<<"RESHAPE" << std::endl;
+        auto temp_val = reshaped.mm(W1);
+        std::cout<<temp_val.requires_grad<< std::endl;
+        auto next_temp = temp_val + b1;
+        std::cout<<next_temp.requires_grad<< std::endl;
+        auto hidden_out = next_temp.tanh();
+        std::cout<<"tanh" << std::endl;
+        auto ok = hidden_out.mm(W2);
+        std::cout<<"second mm" << std::endl;
+        auto logits = ok + b2;
+        std::cout<<"second add" << std::endl;
+        auto loss = logits.cross_entropy(Y_tensor);
+        std::cout<< "LOSS:" << loss.index({0}) << std::endl;
+
+        for(Tensor* param: params) {
+            param->grad = nullptr;
+        }
+
+        loss.backward();
+        std::cout<<loss.requires_grad<< std::endl;
+        std::cout<<"herereser" << std::endl;
+
+        for(Tensor* param: params) {
+            if(param->grad == nullptr) std::cout<<"ok shit broke" << std::endl;
+            //(*param)+=  *(param->grad) * (-0.1);
+
+            std::cout<<"finished one" << std::endl;
+        }
+
+        std::cout<<"got here" << std::endl;
     }
 }
 

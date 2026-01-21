@@ -180,9 +180,15 @@ Tensor operator+(double value, const Tensor& t){
     return t + value;
 }
 
+Tensor operator*(const Tensor& t, double value) {
+    return Tensor(t.shape, t.dtype, t.device, t.storage->mult(value));
+}
+
 Tensor Tensor::reshape(const std::vector<uint32_t> new_shape){
-    if (numel != calc_numel(new_shape))
+    if (numel != calc_numel(new_shape)){
+        std::cout<<"here" << std::endl;
         throw std::runtime_error("Cant reshape like that");
+    }
 
     if (!is_contiguous())
         return contiguous().reshape(new_shape);
@@ -277,12 +283,23 @@ Tensor Tensor::softmax() {
 // TODO: not really correct, you return loss per batch, should be one number
 Tensor Tensor::cross_entropy(Tensor& targets){
     auto out = Tensor({shape[0]}, DType::Float32, device, storage->cross_entropy(targets.storage, shape));
-    if(requires_grad) {
-        out.requires_grad = true;
-        out.gradFn = std::make_shared<CrossEntropyGradFn>(*this, targets);
+   // if(requires_grad) {
+   //     out.requires_grad = true;
+   //     out.gradFn = std::make_shared<CrossEntropyGradFn>(*this, targets);
+   // }
+
+    // TODO: for the love of god, move this into a kernel
+    float real_loss = 0;
+    for(uint32_t i{0}; i < out.shape[0]; i++) {
+        real_loss += out.index({i});
     }
-    return out;
+    real_loss /= out.shape[0];
+    auto real_out = Tensor::ones({1}, DType::Float32, DeviceType::GPU) * real_loss;
+    real_out.requires_grad = true;
+    real_out.gradFn = std::make_shared<CrossEntropyGradFn>(*this, targets);
+    return real_out;
 }
+
 
 Tensor Tensor::cross_entropy_backprop(Tensor& targets) {
     auto out = Tensor(shape, dtype, device, storage->cross_entropy_backprop(targets.storage, shape));

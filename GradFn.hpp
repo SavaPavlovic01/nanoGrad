@@ -17,6 +17,7 @@ public:
     AddGradFn( Tensor& a,  Tensor& b): a(a), b(b) {}
 
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"add backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads();
             *a.grad += *grad_tensor;
@@ -42,6 +43,7 @@ public:
     }
 
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"sub backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads();
             *a.grad += *grad_tensor;
@@ -66,6 +68,7 @@ public:
 
 
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"Mult backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads();
             *a.grad += b* (*grad_tensor);
@@ -87,6 +90,7 @@ public:
     DivGradFn( Tensor& a,  Tensor& b): a(a), b(b) {}
 
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"div backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads();
             *a.grad += (*grad_tensor) / b;
@@ -112,6 +116,7 @@ public:
     MatrixMultGradFn(Tensor& a, Tensor& b) : a(a), b(b) {}
 
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"matrix mult backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads();
             *a.grad += grad_tensor->mm(b.transpose());
@@ -134,6 +139,7 @@ public:
 
     // TODO: reuse the tanh from the forward pass
     void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"tanh backwards"<<std::endl;
         if(a.requires_grad) {
             a.lazy_init_grads(); 
             Tensor temp = a.tanh();

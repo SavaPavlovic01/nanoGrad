@@ -13,6 +13,7 @@ public:
     virtual std::shared_ptr<Storage> add(std::shared_ptr<Storage>) = 0;
     virtual std::shared_ptr<Storage> add(double value) = 0;
     virtual std::shared_ptr<Storage> mult(const std::shared_ptr<Storage>&) = 0;
+    virtual std::shared_ptr<Storage> mult(double value) {throw std::runtime_error("not yet");};
     virtual std::shared_ptr<Storage> div(const std::shared_ptr<Storage>&) = 0;
     virtual std::shared_ptr<Storage> sub(const std::shared_ptr<Storage>&) = 0;
 

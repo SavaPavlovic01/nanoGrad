@@ -300,6 +300,16 @@ public:
         return result;
     }
 
+    std::shared_ptr<Storage> mult(double value) {
+        std::shared_ptr<Storage> result;
+        dispatch_type(this->dtype, [&]<typename T1>() {
+            auto out = std::make_shared<GPUStorage>(*this);
+            mult_constant_kernel_opencl<T1>(out->data, value, out->numel);
+            result = out;
+        });
+        return result;
+    }
+
     void read_buffer(void *dst) {
         auto& context = OpenCLContext::get();
         context.readGpuBuffer(data, size, dst);

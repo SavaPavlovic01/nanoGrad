@@ -60,6 +60,8 @@ public:
     friend Tensor operator+(const Tensor& t, double value);
     friend Tensor operator+(double value, const Tensor& t);
 
+    friend Tensor operator*(const Tensor& t, double value);
+
     friend Tensor operator/(const Tensor& t, const Tensor t2);
 
     Tensor reshape(const std::vector<uint32_t> new_shape);
