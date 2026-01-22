@@ -196,6 +196,17 @@ Tensor Tensor::reshape(const std::vector<uint32_t> new_shape){
     return Tensor(new_shape, dtype, device, storage);
 }
 
+void Tensor::reshape_inplace(const std::vector<uint32_t> new_shape) {
+    if (numel != calc_numel(new_shape)){
+        std::cout<<"here" << std::endl;
+        throw std::runtime_error("Cant reshape like that");
+    }
+
+    this->shape = new_shape;
+    this->numel = calc_numel(new_shape);
+    this->strides = getStrides(new_shape);
+}
+
 Tensor Tensor::contiguous(){
     if (is_contiguous())
         return *this;
@@ -325,5 +336,10 @@ std::vector<int> Tensor::data() {
 
 Tensor Tensor::nab_rows(const std::vector<int>& indecies) {
     Tensor out({(uint32_t)indecies.size(), shape[1]}, dtype, device, storage->new_from_rows(indecies, shape));
+    if(requires_grad) {
+        std::cout<<"JUST TESTING";
+        out.requires_grad = true;
+        out.gradFn = std::make_shared<EmbeddGradFn>(*this, indecies);
+    }
     return out;
 }

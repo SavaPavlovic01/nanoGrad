@@ -1,3 +1,12 @@
+void atomic_add_float_global_cmpxchg(volatile __global float *addr, float val) {
+    union { unsigned int u32; float f32; } next, expected, current;
+    current.f32 = *addr;
+    do {
+        expected.f32 = current.f32;
+        next.f32 = expected.f32 + val;
+        current.u32 = atomic_cmpxchg((volatile __global unsigned int *)addr, expected.u32, next.u32);
+    } while (current.u32 != expected.u32);
+}
 __kernel void softmax_ndim(__global const float* src, __global float* dest, __global const uint* shape, __global const uint* stride, uint numel) {
 
 }
@@ -94,4 +103,18 @@ __kernel void cross_entropy_backprop(__global const float* logits, __global cons
     uint target = targets[row];
 
     dest[base + target] -= 1;
+}
+
+__kernel void embedding_backward(
+    __global const float* X_grad,
+    __global float* C_grad,  
+    __global const int* indices,
+    const int embed_dim      
+) {
+    int row = get_global_id(0);  // batch index
+
+    int idx = indices[row];  
+    for(int d = 0; d < embed_dim; d++) {
+        atomic_add_float_global_cmpxchg(&C_grad[idx * embed_dim + d], X_grad[row * embed_dim + d]);
+    }
 }

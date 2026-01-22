@@ -41,6 +41,7 @@ public:
     virtual std::shared_ptr<Storage> cross_entropy_backprop(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
 
     virtual std::shared_ptr<Storage> new_from_rows(const std::vector<int>& indecies, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
+    virtual void emmbed_backprop(std::shared_ptr<Storage>,const std::vector<int>& indecies, int emmbed_dim){throw std::runtime_error("asdf");};
 
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}

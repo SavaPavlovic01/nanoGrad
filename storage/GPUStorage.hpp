@@ -310,6 +310,23 @@ public:
         return result;
     }
 
+    void emmbed_backprop(std::shared_ptr<Storage> c_grad,const std::vector<int>& indecies, int embedd_dim) {
+        auto& context = OpenCLContext::get();
+        auto kernel = context.get_kernel_by_name("embedding_backward");
+        GPUStorage* ptr = dynamic_cast<GPUStorage*>(c_grad.get());
+        if(!kernel.has_value()) throw std::runtime_error("wtf");
+
+        auto indecies_buffer = context.allocateBuffer(sizeof(int) * indecies.size(), CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE, (void*)indecies.data());
+
+        clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &this->data);
+        clSetKernelArg(kernel.value(), 1, sizeof(cl_mem), &ptr->data);
+        clSetKernelArg(kernel.value(), 2, sizeof(cl_mem), &indecies_buffer);
+        clSetKernelArg(kernel.value(), 3, sizeof(int), &embedd_dim);
+
+        context.runKernel(kernel.value(), {indecies.size()});
+        
+    }
+
     void read_buffer(void *dst) {
         auto& context = OpenCLContext::get();
         context.readGpuBuffer(data, size, dst);

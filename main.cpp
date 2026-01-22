@@ -53,26 +53,19 @@ void mlp_example() {
     std::vector<int> Y(ys.begin(), ys.begin() + 3);
     Tensor Y_tensor(Y, {(uint32_t)Y.size()}, DeviceType::GPU);
     std::cout<< "STARTING" << std::endl;
-    int epoch = 2;
+    int epoch = 20;
+    std::vector<float> losses;
     for(int i = 0; i < epoch; i++) {
+        std::cout<<"RUN " << i<< std::endl;
         auto X = C.nab_rows(test_xs); 
-        for(auto k: X.shape) {
-            std::cout<< k << std::endl;
-        }
-        std::cout<<"nab rows" << std::endl;
-        auto reshaped = X.reshape({9, 9});
-        std::cout<<"RESHAPE" << std::endl;
-        auto temp_val = reshaped.mm(W1);
-        std::cout<<temp_val.requires_grad<< std::endl;
+        X.reshape_inplace({9, 9});
+        auto temp_val = X.mm(W1);
         auto next_temp = temp_val + b1;
-        std::cout<<next_temp.requires_grad<< std::endl;
         auto hidden_out = next_temp.tanh();
-        std::cout<<"tanh" << std::endl;
         auto ok = hidden_out.mm(W2);
-        std::cout<<"second mm" << std::endl;
         auto logits = ok + b2;
-        std::cout<<"second add" << std::endl;
         auto loss = logits.cross_entropy(Y_tensor);
+        losses.push_back(loss.index({0}));
         std::cout<< "LOSS:" << loss.index({0}) << std::endl;
 
         for(Tensor* param: params) {
@@ -80,17 +73,17 @@ void mlp_example() {
         }
 
         loss.backward();
-        std::cout<<loss.requires_grad<< std::endl;
-        std::cout<<"herereser" << std::endl;
 
         for(Tensor* param: params) {
             if(param->grad == nullptr) std::cout<<"ok shit broke" << std::endl;
-            //(*param)+=  *(param->grad) * (-0.1);
-
-            std::cout<<"finished one" << std::endl;
+            (*param)+=  *(param->grad) * (-0.1);
         }
 
         std::cout<<"got here" << std::endl;
+    }
+
+    for(int i = 0; i < losses.size(); i++) {
+        std::cout<<"LOSS "<< i <<":"<< losses[i]<<std::endl;
     }
 }
 

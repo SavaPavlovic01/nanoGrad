@@ -82,6 +82,8 @@ public:
 
     Tensor nab_rows(const std::vector<int>&);
 
+    void reshape_inplace(const std::vector<uint32_t> shape);
+
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;
     std::vector<uint32_t> shape;

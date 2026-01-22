@@ -167,3 +167,20 @@ public:
         a.backward();
     }
 };
+
+class EmbeddGradFn : public GradFn {
+public:
+    Tensor& orig_tensor;
+    const std::vector<int>& indecies;
+
+    EmbeddGradFn(Tensor& orig_tensor,const std::vector<int>& indecies): orig_tensor(orig_tensor), indecies(indecies) {}
+    void backward(std::shared_ptr<Tensor> grad_tensor) override {
+        std::cout<<"LOLOLOLOLOLO" << std::endl;
+        if(orig_tensor.requires_grad) {
+            orig_tensor.lazy_init_grads();
+            // TODO: change the 3 pls
+            grad_tensor->storage->emmbed_backprop(orig_tensor.grad->storage, indecies, 3);
+        }
+        orig_tensor.backward();
+    }
+};
