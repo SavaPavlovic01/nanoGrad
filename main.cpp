@@ -87,6 +87,15 @@ void mlp_example() {
     }
 }
 
+#define M_DIM 2000 
+void mm_optimization() {
+
+    Tensor t1 = Tensor::rand({M_DIM, M_DIM}, 52, DeviceType::GPU);
+    Tensor t2 = Tensor::rand({M_DIM, M_DIM}, 48, DeviceType::GPU);
+
+    t1.mm(t2);
+}
+
 int main() {
 //    register_all_fill_kernels();
 //    register_all_read_kernels();
@@ -102,5 +111,5 @@ int main() {
 //    std::cout<< losses.shape[0] << std::endl << losses.index({0}) << ", " << losses.index({1}) << std::endl;
 //    std::cout << logits.grad->index({0, 0}) << std::endl;
 //    return 0;
-    mlp_example();
+    mm_optimization();
 }

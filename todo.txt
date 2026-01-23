@@ -1,6 +1,5 @@
 !!!!!!!!!!!!!!!!FIX READING PLSSSSS!!!!!!!!!!!!!!!!!!!!!!
 
-try to make some simple mlp
 
 tiled matrix mult
 better softmax
