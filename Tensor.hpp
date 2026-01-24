@@ -84,6 +84,8 @@ public:
 
     void reshape_inplace(const std::vector<uint32_t> shape);
 
+    Tensor mm_tile(const Tensor& t);
+
     std::shared_ptr<Storage> storage;
     std::shared_ptr<Tensor> grad;
     std::vector<uint32_t> shape;

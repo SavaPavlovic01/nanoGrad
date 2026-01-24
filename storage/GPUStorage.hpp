@@ -327,6 +327,34 @@ public:
         
     }
 
+    #define TILE 16
+
+    std::shared_ptr<Storage> mm_tile(std::shared_ptr<Storage> other, const std::vector<uint32_t>& other_shape, const std::vector<uint32_t>& this_shape) override {
+        auto& context = OpenCLContext::get();
+
+        auto kernel = context.get_kernel_by_name("matrixMult_tile");
+        if(!kernel.has_value()) std::cout<<"WTF"<<std::endl;
+
+
+        GPUStorage* other_ptr = dynamic_cast<GPUStorage*>(other.get());
+
+        cl_mem dest_buffer = context.allocateBuffer(this_shape[0] * other_shape[1] * sizeof(float));
+
+        clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &data);
+        clSetKernelArg(kernel.value(), 1, sizeof(uint32_t), &this_shape[0]);
+        clSetKernelArg(kernel.value(), 2, sizeof(uint32_t), &this_shape[1]);
+
+        clSetKernelArg(kernel.value(), 3, sizeof(cl_mem), &other_ptr->data);
+        clSetKernelArg(kernel.value(), 4, sizeof(uint32_t), &other_shape[0]);
+        clSetKernelArg(kernel.value(), 5, sizeof(uint32_t), &other_shape[1]);
+
+        clSetKernelArg(kernel.value(), 6, sizeof(cl_mem), &dest_buffer);
+
+        context.runKernel(kernel.value(), {((this_shape[0] + TILE - 1) / TILE) * TILE, ((other_shape[1] + TILE - 1) / TILE) * TILE}, {TILE, TILE});
+
+        return std::make_shared<GPUStorage>(this_shape[0] * other_shape[1], DType::Float32, dest_buffer);
+    }
+
     void read_buffer(void *dst) {
         auto& context = OpenCLContext::get();
         context.readGpuBuffer(data, size, dst);

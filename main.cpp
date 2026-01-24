@@ -2,6 +2,7 @@
 #include "Registry.hpp"
 #include <iostream>
 #include "OpenClContext.hpp"
+//#include "GPUStorage.hpp"
 
 // TODO: t4 = t1 * t2 + t3 this does not work right now, since t1 * t2 makes a rvalue, when i do add i take its reference but it gets deleted after this line
 inline int letter_to_index(const char c) { return c == '*' ? 27 : c - 'a';}
@@ -93,7 +94,30 @@ void mm_optimization() {
     Tensor t1 = Tensor::rand({M_DIM, M_DIM}, 52, DeviceType::GPU);
     Tensor t2 = Tensor::rand({M_DIM, M_DIM}, 48, DeviceType::GPU);
 
-    t1.mm(t2);
+ //   auto& context = OpenCLContext::get();
+
+ //   auto kernel = context.get_kernel_by_name("matrixMult_tile");
+ //   if(!kernel.has_value()) std::cout<< "WTH" << std::endl;
+
+ //   cl_mem destBuffer = context.allocateBuffer(M_DIM * M_DIM * sizeof(float));
+
+ //   uint32_t s = M_DIM;
+ //   cl_mem t1_buffer =  dynamic_cast<GPUStorage*>(t1.storage.get())->data;
+ //   cl_mem t2_buffer =  dynamic_cast<GPUStorage*>(t2.storage.get())->data;
+ //   clSetKernelArg(kernel.value(), 0, sizeof(cl_mem), &t1_buffer);
+ //   clSetKernelArg(kernel.value(), 1, sizeof(uint32_t), &s);
+ //   clSetKernelArg(kernel.value(), 2, sizeof(uint32_t), &s);
+ //   clSetKernelArg(kernel.value(), 3, sizeof(cl_mem), &t2_buffer);
+ //   clSetKernelArg(kernel.value(), 4, sizeof(uint32_t), &s);
+ //   clSetKernelArg(kernel.value(), 5, sizeof(uint32_t), &s);
+ //   clSetKernelArg(kernel.value(), 3, sizeof(cl_mem), &destBuffer);
+
+ //   context.runKernel(kernel.value(), {((M_DIM + 32 - 1) / 32) * 32, ((M_DIM + 32 - 1) / 32) * 32}, {32, 32});
+
+ //   clReleaseMemObject(destBuffer);
+    int runs = 5;
+    for(int i = 0; i < runs; i++) t1.mm(t2);
+    for(int i = 0; i < runs; i++) t1.mm_tile(t2);
 }
 
 int main() {

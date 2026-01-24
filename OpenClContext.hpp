@@ -107,8 +107,10 @@ public:
             nullptr,
             &event);
 
-        if (err != CL_SUCCESS)
+        if (err != CL_SUCCESS) {
+            printf("yooo %d\n", err);
             throw std::runtime_error("Failed to enqueue OpenCL kernel");
+        }
         clFinish(queue);
 
         cl_ulong time_start, time_end;

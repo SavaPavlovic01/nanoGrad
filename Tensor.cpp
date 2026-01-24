@@ -343,3 +343,7 @@ Tensor Tensor::nab_rows(const std::vector<int>& indecies) {
     }
     return out;
 }
+
+Tensor Tensor::mm_tile(const Tensor& t) {
+    return Tensor({shape[0], t.shape[1]}, DType::Float32, DeviceType::GPU, storage->mm_tile(t.storage, t.shape, shape));
+}

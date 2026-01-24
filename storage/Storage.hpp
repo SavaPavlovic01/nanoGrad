@@ -36,12 +36,16 @@ public:
     virtual std::shared_ptr<Storage>mm(const std::shared_ptr<Storage>& other,const std::vector<uint32_t>& other_sizes, const std::vector<uint32_t>& other_strides, 
         const std::vector<uint32_t>& this_sizes, const std::vector<uint32_t>& this_strides){throw std::runtime_error("not yet");}
 
+    virtual std::shared_ptr<Storage> mm_tile(const std::shared_ptr<Storage> other, const std::vector<uint32_t>& other_shape, const std::vector<uint32_t>& this_shape){throw std::runtime_error("not");};
+
     virtual std::shared_ptr<Storage> softmax(const std::vector<uint32_t>& shape, const std::vector<uint32_t> stride, size_t numel){throw std::runtime_error("not yet");};
     virtual std::shared_ptr<Storage> cross_entropy(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t> shape) {throw std::runtime_error("not yet");}
     virtual std::shared_ptr<Storage> cross_entropy_backprop(const std::shared_ptr<Storage>& targets, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
 
     virtual std::shared_ptr<Storage> new_from_rows(const std::vector<int>& indecies, const std::vector<uint32_t>& shape) {throw std::runtime_error("not yet");}
     virtual void emmbed_backprop(std::shared_ptr<Storage>,const std::vector<int>& indecies, int emmbed_dim){throw std::runtime_error("asdf");};
+
+
 
     virtual void write(double value, uint32_t index) = 0;
     uint64_t get_numel() { return numel;}
