@@ -22,8 +22,52 @@ __kernel void matrixMult_simple(
 }
 
 #define TILE_WIDTH 16
+#define WORK_PER_THREAD 8
 
 __kernel void matrixMult_tile(
+    __global const float* a, uint M, uint N,  
+    __global const float* b, uint Mb, uint Nb,
+    __global float* dest) {
+
+        int global_row = get_global_id(0);
+        int global_col = get_global_id(1);
+
+        int local_row = get_local_id(0);
+        int local_col = get_local_id(1);
+        
+        const int num_tiles = (N + TILE_WIDTH - 1) / TILE_WIDTH;
+
+        __local float shared_A[TILE_WIDTH][TILE_WIDTH];
+        __local float shared_B[TILE_WIDTH][TILE_WIDTH];
+
+        float accs[WORK_PER_THREAD];
+        for(int i = 0; i < WORK_PER_THREAD; i++) accs[i] = 0.0f;
+
+        for(int i = 0; i < num_tiles; i++) {
+
+            for(int w = 0; w < WORK_PER_THREAD; w++) {
+                shared_A[local_row][local_col * WORK_PER_THREAD + w] = a[global_row * N + i * TILE_WIDTH + w + local_col * WORK_PER_THREAD];
+                shared_B[local_row][local_col * WORK_PER_THREAD + w] = b[(i * TILE_WIDTH + local_row) * Nb + w + local_col * WORK_PER_THREAD];
+            }
+
+            barrier(CLK_LOCAL_MEM_FENCE);
+
+            for(int k = 0; k < TILE_WIDTH; k++){
+                for(int w = 0; w < WORK_PER_THREAD; w++){
+                    accs[w] += shared_A[local_row][k] * shared_B[k][local_col * WORK_PER_THREAD + w];
+                }
+            }
+
+            barrier(CLK_LOCAL_MEM_FENCE);
+
+        }
+
+        for(int w = 0; w < WORK_PER_THREAD; w++) {
+            dest[global_row * Nb + global_col * WORK_PER_THREAD + w] = accs[w];
+        }
+}
+
+__kernel void matrixMult_tile_old(
     __global const float* a, uint M, uint N,  
     __global const float* b, uint Mb, uint Nb,
     __global float* dest) {

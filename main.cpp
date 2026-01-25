@@ -116,8 +116,9 @@ void mm_optimization() {
 
  //   clReleaseMemObject(destBuffer);
     int runs = 5;
-    for(int i = 0; i < runs; i++) t1.mm(t2);
+    //for(int i = 0; i < runs; i++) t1.mm(t2);
     for(int i = 0; i < runs; i++) t1.mm_tile(t2);
+
 }
 
 int main() {

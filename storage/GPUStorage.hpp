@@ -328,6 +328,7 @@ public:
     }
 
     #define TILE 16
+    #define WORK_PER_THREAD 8
 
     std::shared_ptr<Storage> mm_tile(std::shared_ptr<Storage> other, const std::vector<uint32_t>& other_shape, const std::vector<uint32_t>& this_shape) override {
         auto& context = OpenCLContext::get();
@@ -350,7 +351,7 @@ public:
 
         clSetKernelArg(kernel.value(), 6, sizeof(cl_mem), &dest_buffer);
 
-        context.runKernel(kernel.value(), {((this_shape[0] + TILE - 1) / TILE) * TILE, ((other_shape[1] + TILE - 1) / TILE) * TILE}, {TILE, TILE});
+        context.runKernel(kernel.value(), {this_shape[0], other_shape[1] / WORK_PER_THREAD}, {TILE, TILE / WORK_PER_THREAD});
 
         return std::make_shared<GPUStorage>(this_shape[0] * other_shape[1], DType::Float32, dest_buffer);
     }
